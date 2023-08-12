@@ -25,7 +25,7 @@ pixel_loop:
 
   ; See if 1024 frames have gone by
   inc ax
-  test ax, 1024 ; AND ax and 128
+  test ax, 64000 ; AND ax and 128
   jz pixel_loop
   ; every 1024 frames terminate_on_enter is called
   call .terminate_on_enter
