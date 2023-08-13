@@ -1,4 +1,4 @@
-%include "test.asm"
+; %include "test.asm"
 
 mov ax, 0x13
 int 0x10
@@ -62,12 +62,12 @@ plot_square:
   pop ax
   ret
 
-; ; plot_pixel(cx position, bl color)
-; plot_pixel:
-;   mov di, cx ; Load Destination Index register with ax value (the coords to put the pixel)
-;   mov dx, bx ; Set the color
-;   mov [es:di],dx ; Write pixel
-;   ret
+; plot_pixel(cx position, bl color)
+plot_pixel:
+  mov di, cx ; Load Destination Index register with ax value (the coords to put the pixel)
+  mov dx, bx ; Set the color
+  mov [es:di],dx ; Write pixel
+  ret
 
 terminate_on_enter:
   xor ax, ax
