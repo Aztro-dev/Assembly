@@ -1,7 +1,7 @@
 section .data
     msg db "Input N: " ; len(msg) = 9
     end_message db 0x0a, "end message" ; newline and "end message"
-    end_message_len dq 0xc
+    end_message_len dq 0xc ; len(end_message) = 12
 section .text
     global _start
 
@@ -87,6 +87,67 @@ atoi_rcx:
     stosb ; al = [rsi]
     ret
 
+; split_newline(rsi pointer) -> rsi after_newline
+split_newline:
+    xor r8, r8
+    .loop:
+        cmp byte [rsi], 0x0a ; newline
+        je .exit
+        inc r8
+        inc rsi
+        jmp .loop
+    sub rsi, r8
+    dec rsi
+    .exit:
+    inc rsi
+    ret
+
+; split_space(rsi pointer) -> rsi after_space
+split_space:
+    xor r8, r8
+    .loop:
+        cmp byte [rsi], 0x20 ; space
+        je .exit
+        inc r8
+        inc rsi
+        jmp .loop
+    sub rsi, r8
+    dec rsi
+    .exit:
+    inc rsi
+    ret
+
+
+; sum_of_all(rcx n) -> r8 output
+sum_of_all:
+    mov rax, rcx
+    mov r8, rcx
+    mul r8
+    ret
+
+
+
+; missing_number(rcx n, r8 sum_of_all, rsi input) -> rcx output
+missing_number:
+    .loop:
+        cmp rcx, 1
+        je .exit
+        dec rcx ; run 1 - n times
+
+        
+        
+        jmp .loop
+
+        
+    .exit:
+    ret
+
+
+
+
+    
+    
+
 _start:
     mov rsi, msg ; pointer to message
     mov rdx, 9 ; len of msg
@@ -96,18 +157,18 @@ _start:
     mov rsi, buff ; address of buffer
     mov rdx, 19 ; buffer size
     call read
-    
+
+    ; atoi_rcx(rsi pointer_to_ascii) -> rcx output
     call atoi_rcx
     mov qword [n], rcx
+
+    ; sum_of_all(rcx n) -> r8 output
+    call sum_of_all
+
+    ; missing_number(rcx n, r8 sum_of_all) -> rcx output
+    call missing_number
     
-    mov rsi, buff ; address of buffer
-    mov rdx, 19 ; buffer size
-    call read
-    
-    call atoi_rcx
-    
-    
-    mov rax,rcx
+    mov rax, rcx
     
     ; itoa(rax integer) -> 
     call itoa
@@ -116,6 +177,8 @@ _start:
     mov rsi,rdi
     inc rdx
     call print
+
+    
     
     mov rsi, end_message
     mov rdx, [end_message_len]
@@ -128,4 +191,3 @@ _start:
 section .bss ; block starting symbol
 buff: resb 19
 n: resb 8
-for_test: resb 20000 ; 20,000
