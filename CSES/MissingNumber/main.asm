@@ -54,7 +54,7 @@ atoi:   xor rax,rax ; rax = 0
 ; itoa(rax integer)
 itoa:   std ; rsi -= 1, rdi -= 1
         mov r9,10 ; r9 will be our base (base 10)
-        bt rax,63 ; cp bit 63 (most significant, handles negatives) in rax to carry flag
+        bt rax,63 ; copy bit 63 (most significant, handles negatives) from rax to carry flag
         setc bl ; if carry flag is set, set bl to 1 (negative sign)
         jnc .lp ; if carry flag isn't set, jump to .lp
         neg rax ; if carry flag is set, negate the number
@@ -70,8 +70,8 @@ itoa:   std ; rsi -= 1, rdi -= 1
         jz .p ; if number is positive, jump to .p (exit)
         mov al,'-' ; if number is NOT positive (negative), add a negative sign
         stosb ; load byte at rsi into al
-.p:     cld ; clear direction flag ()
-        inc rdi
+.p:     cld ; clear direction flag (Turns off automatic rsi increments whenever calling a string function (like stosb))
+        inc rdi ; 
         ret
 
 ; atoi(rsi input) -> rcx
