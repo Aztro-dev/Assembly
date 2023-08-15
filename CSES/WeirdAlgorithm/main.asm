@@ -57,7 +57,7 @@ itoa:   std ; rsi -= 1, rdi -= 1
         inc rdi ; 
         ret
 
-; print_itoa(rax input) -> void
+; print_itoa(rsi buff, rax input) -> void
 print_itoa:
   call itoa
   sub rsi,rdi
@@ -120,6 +120,7 @@ _start:
   
   mov rax, rcx ; for use in print_itoa
 
+  ; print_itoa(rax input)
   call print_itoa ; print the first number of the sequence
 
   mov r8, rax
