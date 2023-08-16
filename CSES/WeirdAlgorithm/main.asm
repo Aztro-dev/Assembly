@@ -1,3 +1,6 @@
+section .data
+default_number: db " 12345678901234567890"
+
 section .text
 global _start
 
@@ -10,9 +13,15 @@ read:
   
 ; print(rsi buff, rdx length)
 print:
-    or rax, 1 ; write
-    or rdi, 1 ; stdout
+    mov r10, rax
+    mov r11, rdi
+    
+    mov rax, 1 ; Write
+    mov rdi, 1 ; Stdout
     syscall
+    
+    mov rax, r10
+    mov rdi, r11
     ret
 
 ; atoi (rsi pointer_to_ascii) -> rdx
@@ -57,16 +66,6 @@ itoa:   std ; rsi -= 1, rdi -= 1
         inc rdi ; 
         ret
 
-; print_itoa(rsi buff, rax input) -> void
-print_itoa:
-  call itoa
-  sub rsi,rdi
-  mov rdx,rsi
-  mov rsi,rdi
-  inc rdx
-  ; print(rsi buff, rdx length)
-  call print
-
 ; atoi(rsi input) -> rcx
 atoi_rcx:
     mov rsi, input
@@ -79,54 +78,65 @@ atoi_rcx:
     stosb ; al = [rsi]
     ret
 
-; weird_algorithm(r8 input) -> void
-weird_algorithm:
-  mov r9, 0x2 ; for use in dividing by two
-  .loop:
-    test r8, 1 ; r8 & 1
-    jz .even
-    jmp .odd
+; handle_num_print(rax n)
+handle_num_print:
+  ; itoa(rax integer) -> rsi output
+  call itoa
+  
+  inc rsi
+  mov [new_number_buffer], rsi
+  dec rsi
+  
+  mov byte [rsi], 0x20 ; Space (32 in decimal)
+  mov rdx, 0x14 ; size of new_number_buffer, 20 bytes
+  call print
+  ret
 
+; weird_algorithm(rax input) -> void
+weird_algorithm:
+  mov r8, 0x2 ; divide by 2
+  mov r9, 0x3 ; multiply by 3
+  cmp rax, 0x1 ; if n is already one, exit
+
+  je .exit
+  xor rdx, rdx ; reset rdx for division
+  .loop:
+    test rax, 0x1 ; rax & 1 (testing for odd/even)
+    jz .even
+    jnz .odd
     .even:
-      cmp r8, 0x1 ; if current number is one
-      je .exit
-      xor rdx, rdx
-      mov rax, r8 ; dividend
-      div r9 ; divide by two
-      ; rax is quotient, rdx is remainder
-      mov r8, rax
-      call print_itoa
-      jmp .loop
+      div r8 ; rdx:rax / r8 = rax, r8 = 2
+      ; handle_num_print(rax n)
+      call handle_num_print
+      cmp rax, 0x1 ; check if n is done now
+      je .exit ; loop is done
+      jmp .loop ; loop if not done
     .odd:
-      cmp r8, 0x1 ; if current number is one
-      je .exit
-      mov rax, 0x3 ; multiply by 3
-      mul r8 ; result stored in rdx:rax
-      mov r8, rax ; Result will be 64 bit anyway
-      inc r8
-      jmp .loop
-    
+      mul r9 ; rax * r9 = rdx:rax, r9 = 3
+      inc rax ; n + 1 part in problem description
+      call handle_num_print
+      cmp rax, 0x1 ; check if n is done now
+      je .exit ; loop is done
+      jmp .loop ; loop if not done
   .exit:
     ret
 
 _start:
   mov rsi, input
-  mov rdx, 3
+  mov rdx, 19
   ; read(rsi input, rdx size)
   call read
+
+  call print
 
   ; atoi_rcx(rsi input) -> rcx output
   call atoi_rcx
   
   mov rax, rcx ; for use in print_itoa
-
-  ; print_itoa(rax input)
-  call print_itoa ; print the first number of the sequence
-
-  mov r8, rax
   
-  ; weird_algorithm(r8 input) -> void
+  ; weird_algorithm(rax input) -> void
   call weird_algorithm
+
 
   mov rax, 60 ; exit
   mov rdi, 0
@@ -134,3 +144,4 @@ _start:
 
 section .bss
 input: resb 0x13 ; 19 in decimal
+new_number_buffer: resb 0x14 ; 20 in decimal
