@@ -1,5 +1,6 @@
 ; %ifndef plot_pixel
 ; %define plot_pixel
+global plot_pixel
 
 ; plot_pixel(cx position, bl color)
 plot_pixel:
