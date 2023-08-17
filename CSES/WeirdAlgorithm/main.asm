@@ -1,3 +1,6 @@
+section .data
+space: db " "
+
 section .text
 global _start
 
@@ -75,6 +78,11 @@ print_itoa:
   ; print(rsi buff, rdx length)
   call print
 
+print_space:
+  mov rsi, space
+  mov rdx, 0x1 ; length of one
+  call print
+
 ; atoi(rsi input) -> rcx
 atoi_rcx:
   mov rsi, input
@@ -107,6 +115,7 @@ weird_algorithm:
       shr rax, 0x1
       ; rax is quotient, rdx is remainder
       mov r13, rax
+      call print_space
       call print_itoa
       mov rax, r13
       jmp .loop
@@ -114,6 +123,7 @@ weird_algorithm:
       mul r8 ; result stored in rdx:rax
       inc rax
       mov r13, rax
+      call print_space
       call print_itoa
       mov rax, r13
       jmp .loop
