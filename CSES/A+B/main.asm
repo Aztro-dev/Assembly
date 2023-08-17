@@ -60,7 +60,6 @@ _start: xor rax,rax
         sub rsi,rdi
         mov rdx,rsi
         mov rsi,rdi
-        inc rdx
         mov rax,1
         mov rdi,rax
         syscall
