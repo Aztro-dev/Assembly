@@ -80,7 +80,7 @@ atoi_rcx:
     call atoi ; atoi(rsi input) -> rdx
     mov rcx, rdx ; store value of atoi
     add rsi, 18
-    mov rdi,input+18 ; end of buff
+    mov rdi, input+18 ; end of buff
     mov rsi,rdi ; rsi = rdi
     std ; rsi--, rdi--
     ; mov rax, 10
@@ -151,7 +151,7 @@ sum_of_all:
 
 ; missing_number(rcx n, rdx rax sum_of_all, rsi input) -> rax output
 missing_number:
-    xor r10, r10
+    xor r11, r11
     mov r9, rcx
     mov r8, 1
     .loop:
@@ -162,16 +162,16 @@ missing_number:
         call atoi_rcx
         
         sub rax, rcx ; subtract current number
-        mov r10, rax
+        mov r11, rax
         mov rax, rcx
 
         ; get_digits(rax input) -> r8 digits
         call get_digits
-        mov rax, r10
+        mov rax, r11
         add rsi, r8 ; skip digits
         inc rsi ; skip space
         
-        jmp .loop
+        ; jmp .loop
         
     .exit:
     ret
@@ -196,15 +196,18 @@ _start:
     add rsi, r8 ; mov rsi by digits
     inc rsi ; account for newline
 
-    mov qword [second_line], rsi
+    mov	rcx, 19 ; length of second_line
+    mov	rdi, second_line
+    cld
+    rep	movsb
 
     mov rcx, qword [n]
 
     ; sum_of_all(rcx n) -> rdx rax output
     call sum_of_all
-
-    mov rsi, second_line
+    
     mov rcx, qword [n]
+    mov rsi, second_line
     ; missing_number(rcx n, rdx rax sum_of_all, rsi input) -> rax output
     call missing_number
 
@@ -217,7 +220,7 @@ _start:
     mov rsi,rdi
     inc rdx
     call print
-    
+
     mov rax, 60 ; exit
     mov rdi, 0
     syscall
