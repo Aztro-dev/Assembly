@@ -1,158 +1,176 @@
 section .data
-space: db " "
 
-section .text
-global _start
+space:
+	db " "
 
-; read(rsi input, rdx size)
+	section .text
+	global  _start
+
+	; read(rsi input, rdx size)
+
 read:
-  xor rax, rax ; Read
-  xor rdi, rdi ; Stdin
-  syscall
-  ret
+	xor rax, rax; Read
+	xor rdi, rdi; Stdin
+	syscall
+	ret
 
-; print(rsi buff, rdx length)
+	; print(rsi buff, rdx length)
+
 print:
-  mov rax, 1 ; write
-  mov rdi, 1 ; stdout
-  syscall
-  ret
+	mov rax, 1; write
+	mov rdi, 1; stdout
+	syscall
+	ret
 
-; atoi (rsi pointer_to_ascii) -> rdx
+	; atoi (rsi pointer_to_ascii) -> rdx
+
 atoi:
-  xor rax,rax ; rax = 0
-  xor rdx,rdx ; rdx = 0
-  lodsb ; load byte at address RSI into AL.
-  cmp al,'-' ; 
-  sete bl ; bl = negative flag
-  jne .lpv ; jump to .lpv if positive
-  .lp:
-    lodsb ; load byte at address RSI into AL
-  .lpv:
-    sub al,'0' ; turns al into number
-    jl .end ; if sign flag != overflow flag, jump to .end
-    imul rdx,10 ; rdx *= 10
-    add rdx,rax ; rdx += rax
-    jmp .lp ; load byte at address RSI into AL
-  .end:
-    test bl,bl ; bl & bl
-    jz .p ; if bl is zero, return
-    neg rdx ; rdx = -rdx
-    ; xchg rax, rdx
-  .p
-    ret
+	xor   rax, rax; rax = 0
+	xor   rdx, rdx; rdx = 0
+	lodsb ; load byte at address RSI into AL.
+	cmp   al, '-'
+	sete  bl; bl = negative flag
+	jne   .lpv; jump to .lpv if positive
 
-; itoa(rax integer) -> rsi output
+.lp:
+	lodsb ; load byte at address RSI into AL
+
+.lpv:
+	sub  al, '0'; turns al into number
+	jl   .end; if sign flag != overflow flag, jump to .end
+	imul rdx, 10; rdx *= 10
+	add  rdx, rax; rdx += rax
+	jmp  .lp; load byte at address RSI into AL
+
+.end:
+	test bl, bl; bl & bl
+	jz   .p; if bl is zero, return
+	neg  rdx; rdx = -rdx
+	;    xchg rax, rdx
+
+.p:
+	ret
+
+	; itoa(rax integer) -> rsi output
+
 itoa:
-  std ; rsi -= 1, rdi -= 1
-  mov r9,10 ; r9 will be our base (base 10)
-  bt rax,63 ; copy bit 63 (most significant, handles negatives) from rax to carry flag
-  setc bl ; if carry flag is set, set bl to 1 (negative sign)
-  jnc .lp ; if carry flag isn't set, jump to .lp
-  neg rax ; if carry flag is set, negate the number
-  .lp:
-    xor rdx,rdx ; reset rdx
-    div r9 ; rax / r9 -> rax output, rdx remainder
-    xchg rax,rdx ; swap rax and rdx
-    add rax,'0' ; rax is now the remainder, which is turned into an ascii integer
-    stosb ; load byte at rsi into al
-    xchg rax,rdx ; rax is now the result of the first division, and rdx is now the ?
-    test rax,rax ; if rax is zero
-    jnz .lp ; if rax isn't zero, jump to .lp (loop), this ensures we have another digit to process
-    test bl,bl ; if bl is zero (sign or no sign)
-    jz .p ; if number is positive, jump to .p (exit)
-    mov al,'-' ; if number is NOT positive (negative), add a negative sign
-    stosb ; load byte at rsi into al
-  .p:
-    cld ; clear direction flag (Turns off automatic rsi increments whenever calling a string function (like stosb))
-    inc rdi ; 
-    ret
+	std  ; rsi -= 1, rdi -= 1
+	mov  r9, 10; r9 will be our base (base 10)
+	bt   rax, 63; copy bit 63 (most significant, handles negatives) from rax to carry flag
+	setc bl; if carry flag is set, set bl to 1 (negative sign)
+	jnc  .lp; if carry flag isn't set, jump to .lp
+	neg  rax; if carry flag is set, negate the number
 
-; print_itoa(rsi buff, rax input) -> void
+.lp:
+	xor   rdx, rdx; reset rdx
+	div   r9; rax / r9 -> rax output, rdx remainder
+	xchg  rax, rdx; swap rax and rdx
+	add   rax, '0'; rax is now the remainder, which is turned into an ascii integer
+	stosb ; load byte at rsi into al
+	xchg  rax, rdx; rax is now the result of the first division, and rdx is now the ?
+	test  rax, rax; if rax is zero
+	jnz   .lp; if rax isn't zero, jump to .lp (loop), this ensures we have another digit to process
+	test  bl, bl; if bl is zero (sign or no sign)
+	jz    .p; if number is positive, jump to .p (exit)
+	mov   al, '-'; if number is NOT positive (negative), add a negative sign
+	stosb ; load byte at rsi into al
+
+.p:
+	cld ; clear direction flag (Turns off automatic rsi increments whenever calling a string function (like stosb))
+	inc rdi
+	ret
+
+	; print_itoa(rsi buff, rax input) -> void
+
 print_itoa:
-  call itoa
-  sub rsi,rdi
-  mov rdx,rsi
-  mov rsi,rdi
-  inc rdx
-  ; print(rsi buff, rdx length)
-  call print
+	call itoa
+	sub  rsi, rdi
+	mov  rdx, rsi
+	mov  rsi, rdi
+	inc  rdx
+	;    print(rsi buff, rdx length)
+	call print
 
 print_space:
-  mov rsi, space
-  mov rdx, 0x1 ; length of one
-  call print
+	mov  rsi, space
+	mov  rdx, 0x1; length of one
+	call print
 
-; atoi(rsi input) -> rcx
+	; atoi(rsi input) -> rcx
+
 atoi_rcx:
-  mov rsi, input
-  call atoi ; atoi(rsi input) -> rdx
-  mov rcx, rdx ; store value of atoi
-  mov rdi,input+18 ; end of buff
-  mov rsi,rdi ; rsi = rdi
-  std ; rsi--, rdi--
-  mov rax, 10
-  stosb ; al = [rsi]
-  ret
+	mov   rsi, input
+	call  atoi; atoi(rsi input) -> rdx
+	mov   rcx, rdx; store value of atoi
+	mov   rdi, input+18; end of buff
+	mov   rsi, rdi; rsi = rdi
+	std   ; rsi--, rdi--
+	mov   rax, 10
+	stosb ; al = [rsi]
+	ret
 
-; weird_algorithm(r8 input) -> void
+	; weird_algorithm(r8 input) -> void
+
 weird_algorithm:
-  mov r8, 0x3 ; multiply by 3
-  cmp rax, 1
-  je .exit
+	mov r8, 0x3; multiply by 3
+	cmp rax, 1
+	je  .exit
 
-  .loop:
-    cmp rax, 0x1 ; if current number is one
-    jle .exit
+.loop:
+	cmp rax, 0x1; if current number is one
+	jle .exit
 
-    xor rdx, rdx
+	xor rdx, rdx
 
-    test rax, 1 ; rax & 1
-    jz .even
-    jnz .odd
+	test rax, 1; rax & 1
+	jz   .even
+	jnz  .odd
 
-    .even:
-      shr rax, 0x1
-      ; rax is quotient, rdx is remainder
-      mov r13, rax
-      call print_space
-      call print_itoa
-      mov rax, r13
-      jmp .loop
-    .odd:
-      mul r8 ; result stored in rdx:rax
-      inc rax
-      mov r13, rax
-      call print_space
-      call print_itoa
-      mov rax, r13
-      jmp .loop
+.even:
+	shr  rax, 0x1
+	;    rax is quotient, rdx is remainder
+	mov  r13, rax
+	call print_space
+	call print_itoa
+	mov  rax, r13
+	jmp  .loop
 
-  .exit:
-  ret
+.odd:
+	mul  r8; result stored in rdx:rax
+	inc  rax
+	mov  r13, rax
+	call print_space
+	call print_itoa
+	mov  rax, r13
+	jmp  .loop
+
+.exit:
+	ret
 
 _start:
-  mov rsi, input
-  mov rdx, 19
-  ; read(rsi input, rdx size)
-  call read
+	mov  rsi, input
+	mov  rdx, 19
+	;    read(rsi input, rdx size)
+	call read
 
-  ; atoi_rcx(rsi input) -> rcx output
-  call atoi_rcx
+	;    atoi_rcx(rsi input) -> rcx output
+	call atoi_rcx
 
-  mov rax, rcx ; for use in print_itoa
+	mov rax, rcx; for use in print_itoa
 
-  ; print_itoa(rax input)
-  call print_itoa ; print the first number of the sequence
+	;    print_itoa(rax input)
+	call print_itoa; print the first number of the sequence
 
-  mov rax, rcx
+	mov rax, rcx
 
-  ; weird_algorithm(rax input) -> void
-  call weird_algorithm
+	;    weird_algorithm(rax input) -> void
+	call weird_algorithm
 
-  mov rax, 60 ; exit
-  mov rdi, 0
-  syscall
+	mov rax, 60; exit
+	mov rdi, 0
+	syscall
 
-section .bss
-input: resb 0x13 ; 19 in decimal
+	section .bss
+
+input:
+	resb 0x13; 19 in decimal
