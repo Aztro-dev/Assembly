@@ -219,11 +219,11 @@ _start:
 	;    get_digits(rax number) -> r8 digits
 	call get_digits
 
+	mov rcx, qword [n]
+
 	mov  rsi, second_line
 	mov  rdx, second_line_len
 	call read
-
-	mov rcx, qword [n]
 
 	;    sum_of_all(rcx n) -> rdx rax output
 	call sum_of_all
@@ -256,5 +256,5 @@ input:
 n:
 	resb 8
 
-	second_line: resb 19
+	second_line: resq 19
 	second_line_len: equ $ - second_line
