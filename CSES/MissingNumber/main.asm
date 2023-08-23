@@ -245,7 +245,7 @@ _start:
 
 .exit:
 	mov rax, 60; exit
-	mov rdi, 0
+	xor rdi, rdi
 	syscall
 
 	section .bss; block starting symbol
