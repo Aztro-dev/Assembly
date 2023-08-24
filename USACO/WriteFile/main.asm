@@ -1,5 +1,6 @@
 section .data
 output_file: db "output.out", 0x0
+text: db "Testing", 0x0
 write_file_mode: dq 0400 ; write access to owner of the file
 
 section .text
@@ -14,8 +15,8 @@ _start:
 
 	mov rax, 0x1; write
 	mov rdi, qword [file_descriptor]; Write to file
-	mov rsi, input_buffer
-	mov rdx, 0xE; input_buffer length (16)
+	mov rsi, text
+	mov rdx, 0x8 ; buffer length (8)
 	syscall
 
 	mov     rax, 0x3; close file
@@ -27,5 +28,4 @@ _start:
 	syscall
 
 	section .bss
-	input_buffer: resb 16
 	file_descriptor: resq 1
