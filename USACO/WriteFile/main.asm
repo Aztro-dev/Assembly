@@ -1,22 +1,24 @@
 section .data
 output_file: db "output.out", 0x0
-text: db "Testing", 0x0
-write_file_mode: dq 0400 ; write access to owner of the file
 
-section .text
-global  _start
+text:
+	db "Testing"
+	write_file_mode: dq 0400 ; write access to owner of the file
+
+	section .text
+	global  _start
 
 _start:
-	mov rax, 0x55 ; creat()
-	mov rdi, output_file
-	mov rsi, qword [write_file_mode]
+	mov     rax, 0x55; creat()
+	mov     rdi, output_file
+	mov     rsi, qword [write_file_mode]
 	syscall ; file descriptor stored in rax
-	mov qword [file_descriptor], rax
+	mov     qword [file_descriptor], rax
 
 	mov rax, 0x1; write
 	mov rdi, qword [file_descriptor]; Write to file
 	mov rsi, text
-	mov rdx, 0x8 ; buffer length (8)
+	mov rdx, 0x7; buffer length (7)
 	syscall
 
 	mov     rax, 0x3; close file
