@@ -1,11 +1,13 @@
 section .data
 input_file: db "ride.in", 0x0
+output_file: db "ride.out", 0x0
+write_file_mode: dq 0400 ; write access to owner of the file
 
 go:
-	db "GO", 0x0
+	db "GO"
 
 stay:
-	db "STAY", 0x0
+	db "STAY"
 
 	section .text
 	global  _start
@@ -68,14 +70,19 @@ solve:
 	je  .go
 
 .stay:
-	mov rsi, stay; stay buffer
-	mov rdx, 0x5; length of stay
+	mov rax, 0x1; write
+	mov rdi, qword [output_file_descriptor]; Write to file
+	mov rsi, stay
+	mov rdx, 0x4; stay length (4)
 	syscall
 	jmp .exit
 
 .go:
-	mov rsi, go; stay buffer
-	mov rdx, 0x3; length of stay
+	mov rax, 0x1; write
+	mov rdi, qword [output_file_descriptor]; Write to file
+	mov rsi, go
+	mov rdx, 0x2; go length (2)
+	syscall
 	syscall
 
 .exit:
@@ -87,19 +94,25 @@ _start:
 	xor     rsi, rsi; no idea what int flags do
 	xor     rdx, rdx; no idea what umode_t mode does
 	syscall ; call open and return file descriptor in rax
-	mov     qword [file_descriptor], rax; store file descriptor for later use
+	mov     qword [input_file_descriptor], rax; store file descriptor for later use
 
-	mov rdi, qword [file_descriptor]; file descriptor
+	mov rdi, qword [input_file_descriptor]; file descriptor
 	xor rax, rax; read
 	mov rsi, input_buffer; buffer
 	mov rdx, 0xE; input_buffer length (14)
 	syscall
 
+	mov     rax, 0x55; creat()
+	mov     rdi, output_file
+	mov     rsi, qword [write_file_mode]
+	syscall ; file descriptor stored in rax
+	mov     qword [output_file_descriptor], rax
+
 	;    input text should be stored in input_buffer
 	call solve
 
 	mov     rax, 0x3; close file
-	mov     rdi, qword [file_descriptor]; so the kernel knows what file to close (file_descriptor)
+	mov     rdi, qword [input_file_descriptor]; so the kernel knows what file to close (input_file_descriptor)
 	syscall ; close file
 
 	mov rax, 60; exit
@@ -108,4 +121,5 @@ _start:
 
 	section .bss
 	input_buffer: resb 14
-	file_descriptor: resq 1
+	input_file_descriptor: resq 1
+	output_file_descriptor: resq 1

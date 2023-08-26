@@ -13,5 +13,6 @@ compile:
 clean:
 	@rm -f ReadFile/main
 	@rm -f Ride/main
+	@rm -f Ride/ride.out
 	@rm -f WriteFile/output.out
 	@echo "Cleaned"
