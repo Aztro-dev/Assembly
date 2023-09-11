@@ -13,7 +13,7 @@ int foo(void) {
   return fred;
 }
 
-extern uint64_t proc(uint64_t a); /* Prototype */
+extern "C" uint64_t proc(uint64_t a); /* Prototype */
 
 __asm__( /* Assembly function body */
 "proc:\n"
