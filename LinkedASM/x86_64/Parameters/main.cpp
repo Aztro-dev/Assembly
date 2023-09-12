@@ -7,6 +7,6 @@ int main(){
   uint64_t a = 100;
   uint64_t b = 200;
   uint64_t result = parameters(a, b);
-  printf("%lld", result);
+  printf("%lld\n", result);
   return 0;
 }
