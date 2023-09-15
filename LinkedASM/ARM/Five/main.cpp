@@ -1,10 +1,10 @@
-#include <stdio.h>
 #include <cstdint>
+#include <stdio.h>
 
 extern "C" uint64_t five();
 
-int main(){
+int main() {
   uint64_t result = five();
-  printf("%lld", result);
+  printf("%lld\n", result);
   return 0;
 }
