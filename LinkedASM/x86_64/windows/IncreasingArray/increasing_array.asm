@@ -1,4 +1,4 @@
-section .note.GNU-stack
+section .note.GNU-stack; so gcc doesn't complain
 
 section .text
 global  increasing_array
@@ -10,17 +10,17 @@ increasing_array:
 	cmp ecx, 0x1; if length == 1
 	jle .exit; return
 
-	mov rsi, rdx
-	xor rdx, rdx
-	xor rbx, rbx
+	mov rsi, rdx; Store the pointer to the numbers in rsi
+	xor rbx, rbx; we need to clear the high part of rbx
+	xor rdx, rdx; We need to clear the high part of rdx
 
-	mov ebx, dword [rsi]; prev_num = rsi[0]
+	mov ebx, dword [rsi]; int prev_num = rsi[0]
 	add rsi, 4; next dword
-	mov edx, dword [rsi]; curr_num = rsi[1]
+	mov edx, dword [rsi]; int curr_num = rsi[1]
 
 .loop:
 	cmp ecx, 0x1; if (ecx <= 1)
-	jle .exit; return
+	jl  .exit; return
 	dec ecx; ecx--
 
 	cmp edx, ebx; if(edx <= ebx)
