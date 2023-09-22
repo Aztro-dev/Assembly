@@ -1,6 +1,6 @@
 compile:
 	@nasm -f win64 main.asm
-	@gcc main.obj -o main -Wall -Werror
+	@gcc main.obj -o main -Wall -Werror -no-pie 
 	@rm -f main.obj
 
 clean:
