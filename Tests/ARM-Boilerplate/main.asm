@@ -7,7 +7,13 @@
 ; Setup the parameters to print hello world
 ; and then call Linux to do it.
 
-_main: 
+_main:
+  mov x0, #0 ; 0 = stdin
+  adr x1, input_buffer ; buffer
+  mov x2, #10 ; buffer size
+  mov x16, #3     ; MacOS read system call
+  svc 0
+
   mov x0, #1     ; 1 = stdout
   adr x1, helloworld ; string to print
   mov x2, #13     ; length of our string
@@ -19,6 +25,8 @@ _main:
 
   mov     x0, #0      ; Use 0 return code
   mov     x16, #1     ; Service command code 1 terminates this program
-  svc     0           ; Call MacOS to terminate the program
+  svc     #0           ; Call MacOS to terminate the program
 
 helloworld:      .ascii  "Hello World!\n"
+input_buffer_size: #10
+input_buffer: .skip 80
