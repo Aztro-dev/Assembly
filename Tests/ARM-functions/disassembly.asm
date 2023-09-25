@@ -4,16 +4,16 @@ main:	file format mach-o arm64
 Disassembly of section __TEXT,__text:
 
 0000000100003f0c <_test>:
-100003f0c: d10043ff    	sub	sp, sp, #16
-100003f10: b9000fe0    	str	w0, [sp, #12]
-100003f14: b9000be1    	str	w1, [sp, #8]
-100003f18: b90007e2    	str	w2, [sp, #4]
-100003f1c: b9400fe8    	ldr	w8, [sp, #12]
-100003f20: b9400be9    	ldr	w9, [sp, #8]
-100003f24: 0b090108    	add	w8, w8, w9
-100003f28: b94007e9    	ldr	w9, [sp, #4]
-100003f2c: 0b090100    	add	w0, w8, w9
-100003f30: 910043ff    	add	sp, sp, #16
+100003f0c: d10043ff    	sub	sp, sp, #16 // For stack alignment
+100003f10: b9000fe0    	str	w0, [sp, #12] // [sp + 12] = w0
+100003f14: b9000be1    	str	w1, [sp, #8] // [sp + 8] = w1
+100003f18: b90007e2    	str	w2, [sp, #4] // [sp + 4] = w2
+100003f1c: b9400fe8    	ldr	w8, [sp, #12] // w8 = [sp + 12]
+100003f20: b9400be9    	ldr	w9, [sp, #8] // w9 = [sp + 8]
+100003f24: 0b090108    	add	w8, w8, w9 // w8 += w9
+100003f28: b94007e9    	ldr	w9, [sp, #4] // [sp + 4] = w9
+100003f2c: 0b090100    	add	w0, w8, w9 // Register w0 is the return register
+100003f30: 910043ff    	add	sp, sp, #16 // realign stack
 100003f34: d65f03c0    	ret
 
 0000000100003f38 <_main>:
