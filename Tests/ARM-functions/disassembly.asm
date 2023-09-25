@@ -14,7 +14,7 @@ Disassembly of section __TEXT,__text:
 100003f28: b94007e9    	ldr	w9, [sp, #4] // [sp + 4] = w9
 100003f2c: 0b090100    	add	w0, w8, w9 // Register w0 is the return register
 100003f30: 910043ff    	add	sp, sp, #16 // realign stack
-100003f34: d65f03c0    	ret
+100003f34: d65f03c0    	ret // Return w0
 
 0000000100003f38 <_main>:
 100003f38: d100c3ff    	sub	sp, sp, #48
