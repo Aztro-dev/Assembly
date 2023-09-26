@@ -13,16 +13,35 @@ output_file_descriptor: resq 1
 section .text
 global  _start
 
-;(rax ptr, rdi size) input_string()
+;(rdi ptr, rsi size) input_string()
 input_string:
-	push rsp 
-	xor r8, r8 ; length of final string
-	mov r9, rsp ; pointer to final string
-	xor rax, rax ; read
-	mov rdi, input_file_descriptor ; input file (gift1.in)
-	mov rsi, temp_buff ; 1 byte large
-	mov rdx, 0x1 ; 1 byte
-	syscall ; read one byte from STDIN 
+	push rbp
+	mov rbp, rsp
+	mov r8, rbp ; pointer to final string
+	xor r9, r9 ; length of final string
+	mov byte[temp_buff], 0x0
+	.loop:
+		cmp byte[temp_buff], 0x0a ; see if the final character is a newline
+		je .exit
+		.read_byte:
+			xor rax, rax ; read
+			mov rdi, input_file_descriptor ; input file (gift1.in)
+			mov rsi, temp_buff ; 1 byte large
+			mov rdx, 0x1 ; 1 byte
+			syscall ; read one byte from STDIN 
+
+		sub rsp, 0x1 ; Create one byte on the stack
+		mov byte [rsp], byte [temp_buff] ; write to buffer on stack
+		inc r9 ; length++
+		jmp .loop
+
+	.exit:
+	mov rdi, r8 ; pointer to string
+	mov rsi, r9 ; length of string
+
+	mov rsp, rbp ; rsp returns back to its original value
+	pop rbp ; restore original rbp value
+	ret
 
 ; input text should be stored in input_buffer
 solve:
