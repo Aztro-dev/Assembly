@@ -83,15 +83,15 @@ solve:
 .stay:
 	mov rax, 0x1; write
 	mov rdi, qword [output_file_descriptor]; Write to file
-	mov rsi, stay
+	; mov rsi, stay
 	mov rdx, 0x4; stay length (4)
-	syscall
+	; syscall
 	jmp .exit
 
 .go:
 	mov rax, 0x1; write
 	mov rdi, qword [output_file_descriptor]; Write to file
-	mov rsi, go
+	; mov rsi, go
 	mov rdx, 0x2; go length (2)
 	syscall
 	syscall
