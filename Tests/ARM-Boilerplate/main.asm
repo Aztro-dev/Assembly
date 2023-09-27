@@ -12,7 +12,7 @@ _main:
   adr x1, helloworld ; string to print
   mov x2, #13     ; length of our string
   mov x16, #4     ; MacOS write system call
-  svc 0     ; Call linux to output the string
+  svc #0     ; Call linux to output the string
 
 ; Setup the parameters to exit the program
 ; and then call Linux to do it.
