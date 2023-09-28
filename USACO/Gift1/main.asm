@@ -31,7 +31,8 @@ input_string:
 			syscall ; read one byte from STDIN 
 
 		sub rsp, 0x1 ; Create one byte on the stack
-		mov byte [rsp], byte [temp_buff] ; write to buffer on stack
+		mov r11b, byte[temp_buff]
+		mov [rsp], r11b ; write to buffer on stack
 		inc r9 ; length++
 		jmp .loop
 
