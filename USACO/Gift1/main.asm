@@ -1,8 +1,9 @@
+section .note-GNU-stack
+
 section .data
 input_file: db "gift1.in", 0x0
 output_file: db "gift1.out", 0x0
 write_file_mode: dq 0400 ; write access to owner of the file
-
 
 section .bss
 input_buffer: resb 14
@@ -14,37 +15,41 @@ section .text
 global  _start
 
 ;(rdi ptr, rsi size) input_string()
+
 input_string:
 	push rbp
-	mov rbp, rsp
-	mov r8, rbp ; pointer to final string
-	xor r9, r9 ; length of final string
-	mov byte[temp_buff], 0x0
-	.loop:
-		cmp byte[temp_buff], 0x0a ; see if the final character is a newline
-		je .exit
-		.read_byte:
-			xor rax, rax ; read
-			mov rdi, input_file_descriptor ; input file (gift1.in)
-			mov rsi, temp_buff ; 1 byte large
-			mov rdx, 0x1 ; 1 byte
-			syscall ; read one byte from STDIN 
+	mov  rbp, rsp
+	mov  r8, rbp; pointer to final string
+	xor  r9, r9; length of final string
+	mov  byte[temp_buff], 0x0
 
-		sub rsp, 0x1 ; Create one byte on the stack
-		mov r11b, byte[temp_buff]
-		mov [rsp], r11b ; write to buffer on stack
-		inc r9 ; length++
-		jmp .loop
+.loop:
+	cmp byte[temp_buff], 0x0a; see if the final character is a newline
+	je  .exit
 
-	.exit:
-	mov rdi, r8 ; pointer to string
-	mov rsi, r9 ; length of string
+.read_byte:
+	xor     rax, rax; read
+	mov     rdi, input_file_descriptor; input file (gift1.in)
+	mov     rsi, temp_buff; 1 byte large
+	mov     rdx, 0x1; 1 byte
+	syscall ; read one byte from STDIN
 
-	mov rsp, rbp ; rsp returns back to its original value
-	pop rbp ; restore original rbp value
+	sub rsp, 0x1; Create one byte on the stack
+	mov r11b, byte[temp_buff]
+	mov [rsp], r11b; write to buffer on stack
+	inc r9; length++
+	jmp .loop
+
+.exit:
+	mov rdi, r8; pointer to string
+	mov rsi, r9; length of string
+
+	mov rsp, rbp; rsp returns back to its original value
+	pop rbp; restore original rbp value
 	ret
 
-; input text should be stored in input_buffer
+	; input text should be stored in input_buffer
+
 solve:
 	xor rax, rax; reset rax
 	xor rdx, rdx; reset rdx
@@ -103,15 +108,15 @@ solve:
 .stay:
 	mov rax, 0x1; write
 	mov rdi, qword [output_file_descriptor]; Write to file
-	; mov rsi, stay
+	;   mov rsi, stay
 	mov rdx, 0x4; stay length (4)
-	; syscall
+	;   syscall
 	jmp .exit
 
 .go:
 	mov rax, 0x1; write
 	mov rdi, qword [output_file_descriptor]; Write to file
-	; mov rsi, go
+	;   mov rsi, go
 	mov rdx, 0x2; go length (2)
 	syscall
 	syscall
