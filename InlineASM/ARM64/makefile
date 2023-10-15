@@ -1,5 +1,5 @@
 compile:
-	gcc main.c -o main -masm=intel
+	@gcc main.c -o main  -v
 
 clean:
 	@rm -f main.exe
