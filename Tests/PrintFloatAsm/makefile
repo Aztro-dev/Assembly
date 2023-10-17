@@ -1,6 +1,5 @@
 compile:
-	@yasm -g dwarf2 -f elf64 main.asm
-	@gcc main.cpp -o main -no-pie main.o
+	@nasm -f elf64 main.asm -o main
 
 clean:
 	@rm main.o

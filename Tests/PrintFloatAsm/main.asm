@@ -8,9 +8,9 @@ section .note.GNU-stack noalloc noexec nowrite progbits
 
 section .text
 extern  printf
-global  start
+global  _start
 
-start:
+_start:
 	push rbp; creates stack frame
 
 	mov   rax, 1
