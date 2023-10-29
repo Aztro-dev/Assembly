@@ -4,11 +4,12 @@ output_file db "gift1.out", 0x0
 write_file_mode dq 0400 ; write access to owner of the file
 
 section .bss
-input_buffer: resb 14
-integer_buffer: resb 19 ; To store a 64-bit integer
-integer_buffer_len: equ $ - integer_buffer
-name_buffer: resb 14
-name_buffer_len: equ $ - name_buffer
+input_buffer resb 14
+integer_buffer resb 19 ; To store a 64-bit integer
+integer_buffer_len equ $ - integer_buffer
+name_buffer resb 14
+name_buffer_len equ $ - name_buffer
+input_character resw 1
 
 NP:
 	resq 1
@@ -80,23 +81,20 @@ solve:
 	jle .exit_read_names_loop
 	dec r10
 
-	sub rsp, 0x1; Make space for a character
-
 	xor r9, r9; Store length of name
 
 	mov rdi, [input_file_descriptor]; Da file
-	mov rsi, rsp; Yikes this is risky :|
+	mov rsi, input_character; Yikes this is risky :|
 	mov rdx, 0x1
 
 .read_name:
-	xor rax, rax; Read
+	xor  rax, rax; Read
 	syscall
-	cmp byte [rsi], 0xA; Check if at newline
-	je  .exit_read_name
-	sub rsp, 0x1; Make space for one more character
-	mov rsi, rsp
-	inc r9; Increase length of string
-	jmp .read_name
+	cmp  byte [rsi], 0xA; Check if at newline
+	je   .exit_read_name
+	push word [input_character]
+	inc  r9; Increase length of string
+	jmp  .read_name
 
 .exit_read_name:
 	add rsp, r9; To read at the beginning of the string
@@ -108,8 +106,9 @@ solve:
 
 	sub rsp, r9; Go back after the string to add the bank balance
 
-	sub rsp, 4; 32-bit integer for bank balance
-	mov dword [rsp], 0x0; Clear the bank balance for person
+	xor  rax, rax
+	push rax
+
 	jmp .read_names_loop
 
 .exit_read_names_loop:
