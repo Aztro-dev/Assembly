@@ -1,6 +1,6 @@
 compile:
 	@nasm -f elf64 main.asm
-	@ld main.o -o main
+	@ld main.o -o main -g
 	@rm -f main.o
 
 clean:

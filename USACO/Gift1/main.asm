@@ -71,13 +71,14 @@ solve:
 	call atoi; Output stored in rax
 	mov  qword [NP], rax; Store the number into NP
 
-	mov rcx, rax; rcx will be the name counter
+	mov r10, rax; rcx will be the name counter
 
 	mov r8, rsp; Make sure not to lose track of rsp!
 
 .read_names_loop:
-	test rcx, rcx
-	jz   .exit_read_names_loop
+	cmp r10, 0
+	jle .exit_read_names_loop
+	dec r10
 
 	sub rsp, 0x1; Make space for a character
 
@@ -93,15 +94,14 @@ solve:
 	cmp byte [rsi], 0xA; Check if at newline
 	je  .exit_read_name
 	sub rsp, 0x1; Make space for one more character
-	dec rsi; Show that change in rsi
+	mov rsi, rsp
 	inc r9; Increase length of string
 	jmp .read_name
 
 .exit_read_name:
-	dec rcx
 	add rsp, r9; To read at the beginning of the string
 	mov rax, 0x1; Write
-	mov rax, [output_file_descriptor]; Da file
+	mov rdi, [output_file_descriptor]; Da file
 	mov rsi, rsp
 	mov rdx, r9
 	syscall
