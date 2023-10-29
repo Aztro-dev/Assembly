@@ -1,20 +1,119 @@
 section .data
-input_file: db "gift1.in", 0x0
-output_file: db "gift1.out", 0x0
-write_file_mode: dq 0400 ; write access to owner of the file
+input_file db "gift1.in", 0x0
+output_file db "gift1.out", 0x0
+write_file_mode dq 0400 ; write access to owner of the file
 
 section .bss
 input_buffer: resb 14
+integer_buffer: resb 19 ; To store a 64-bit integer
+integer_buffer_len: equ $ - integer_buffer
+name_buffer: resb 14
+name_buffer_len: equ $ - name_buffer
 
-input_file_descriptor: resq 1
-output_file_descriptor: resq 1
+NP:
+	resq 1
+	input_file_descriptor: resq 1
+	output_file_descriptor: resq 1
 
-section .text
-extern  _scanf
-extern  _printf
-global  _start
+	section .text
+	global  _start
+
+atoi:
+	push rbx; if you are going to use rbx you must preserve it by pushing it onto the stack
+
+	;~  Address is passed in rdi
+	mov rbx, 10; to multiply by
+	xor rax, rax; to use as "result so far"
+	xor rcx, rcx; our character/digit (high bits zero)
+
+.top:
+	mov cl, byte [rdi]; get a character
+	add rdi, 1; get ready for the next one
+	cmp cl, 0; end of string?
+	je  .done
+	cmp cl, '0'
+	jb  .invalid
+	cmp cl, '9'
+	ja  .invalid
+	sub cl, '0'; or 48 or 30h
+	;   now that we know we have a valid digit...
+	;   multiply "result so far" by 10
+	mul rbx
+	jc  .overflow; ?
+	;   and add in the new digit
+	add rax, rcx
+	jmp .top
+	; I'm not going to do anything different for overflow or invalid
+	; just return what we've got
+
+.overflow:
+.invalid:
+.done:
+	pop rbx; restore rbx to its original value
+	ret ; number is in rax
 
 solve:
+	xor rax, rax; Read
+	mov rdi, [input_file_descriptor]; Da file
+	mov rsi, integer_buffer
+	mov rdx, 0x1
+
+.read_np_loop:
+	xor     rax, rax; Read because read() returns a number
+	syscall ; Read in one byte
+	cmp     byte [rsi], 0xA; Compare rsi to newline
+	je      .exit_read_np_loop
+	inc     rsi
+	jmp     .read_np_loop
+
+.exit_read_np_loop:
+	mov  rdi, integer_buffer
+	call atoi; Output stored in rax
+	mov  qword [NP], rax; Store the number into NP
+
+	mov rcx, rax; rcx will be the name counter
+
+	mov r8, rsp; Make sure not to lose track of rsp!
+
+.read_names_loop:
+	test rcx, rcx
+	jz   .exit_read_names_loop
+
+	sub rsp, 0x1; Make space for a character
+
+	xor r9, r9; Store length of name
+
+	mov rdi, [input_file_descriptor]; Da file
+	mov rsi, rsp; Yikes this is risky :|
+	mov rdx, 0x1
+
+.read_name:
+	xor rax, rax; Read
+	syscall
+	cmp byte [rsi], 0xA; Check if at newline
+	je  .exit_read_name
+	sub rsp, 0x1; Make space for one more character
+	dec rsi; Show that change in rsi
+	inc r9; Increase length of string
+	jmp .read_name
+
+.exit_read_name:
+	dec rcx
+	add rsp, r9; To read at the beginning of the string
+	mov rax, 0x1; Write
+	mov rax, [output_file_descriptor]; Da file
+	mov rsi, rsp
+	mov rdx, r9
+	syscall
+
+	sub rsp, r9; Go back after the string to add the bank balance
+
+	sub rsp, 4; 32-bit integer for bank balance
+	mov dword [rsp], 0x0; Clear the bank balance for person
+	jmp .read_names_loop
+
+.exit_read_names_loop:
+	mov rsp, r8; Restore rsp
 
 	ret
 
@@ -26,17 +125,18 @@ _start:
 	syscall; call open and return file descriptor in rax
 	mov      qword [input_file_descriptor], rax; store file descriptor for later use
 
-	mov      rax, 0x55; creat()
-	mov      rdi, output_file
-	mov      rsi, qword [write_file_mode]
-	syscall; file descriptor stored in rax
-	mov      qword [output_file_descriptor], rax
+	mov qword [output_file_descriptor], 1; STDOUT
+	;   mov      rax, 0x55; creat()
+	;   mov      rdi, output_file
+	;   mov      rsi, qword [write_file_mode]
+	;   syscall; file descriptor stored in rax
+	;   mov      qword [output_file_descriptor], rax
 
 	call solve
 
-	mov      rax, 0x3; close file
-	mov      rdi, qword [input_file_descriptor]; so the kernel knows what file to close (input_file_descriptor)
-	syscall; close file
+	; mov      rax, 0x3; close file
+	; mov      rdi, qword [input_file_descriptor]; so the kernel knows what file to close (input_file_descriptor)
+	; syscall; close file
 
 	mov rax, 60; exit
 	xor rdi, rdi; err_code 0
