@@ -1,5 +1,3 @@
-; %include "test.asm"
-
 mov ax, 0x13
 int 0x10
 
@@ -7,17 +5,15 @@ mov ax, 0xA000
 mov es, ax
 
 xor ax, ax ; Counter for frames
-mov bx, 0x8002 ; bl is color, bh is square size
+mov bx, 0x1002 ; bl is color, bh is square size
 xor cx, cx ; Top left
 
 pixel_loop:
-  ; call plot_pixel
-  call plot_square
-  ; inc cx ; Increment position
-
-  ; add bx, cx ; Change color by pixel position
-
   call clear_screen
+
+  call plot_square
+
+  ; call move_node
 
   ; See if process has finished
   inc ax
@@ -31,14 +27,16 @@ plot_square:
   push ax
   push cx
   push dx
-  
+
   xor ax, ax
   
   .outer_loop:
-    cmp al, bh
+    cmp al, 0xCD ; Max Height
+    je .end_of_plot_square ; exit outer_loop if al gets too big (height of screen)
+    cmp al, bh ; Height
     je .end_of_plot_square ; exit outer_loop if al is done with size
     .inner_loop:
-      cmp ah, bh
+      cmp ah, bh ; Width
       je .after_inner_loop ; exit inner_loop if ah is done with size
 
       call plot_pixel ; plot pixel (duh)
@@ -65,8 +63,13 @@ plot_square:
 ; plot_pixel(cx position, bl color)
 plot_pixel:
   mov di, cx ; Load Destination Index register with ax value (the coords to put the pixel)
-  mov dx, bx ; Set the color
+  xor dx, dx ; Idk why but this gets rid of the weird color band
+  mov dl, bl ; Set the color
   mov [es:di],dx ; Write pixel
+  ret
+
+move_node:
+  add cx, 0x10 ; size of square's sides
   ret
 
 terminate_on_enter:
@@ -84,10 +87,10 @@ clear_screen:
   int 0x16 ; Wait for keyboard input
   cmp ah, 0x1c ; See if ah is enter
   jne return
-
+  
   mov al, 0 ; al gets the color value
   mov ah, al ; Duplicate the color value
-  mov bx, 0x0A000 ;
+  mov bx, 0x0A000 ; Start of VGA
   mov es, bx ; es set to start of VGA
   mov cx, 32000 ; cx set to number of words
   mov di, 0 ; di set to pixel offset 0
@@ -119,9 +122,7 @@ print_str:
 end_drawing:
   db "Drawing has ended", 0
 
-
 exit:
   jmp $
 times 510 - ($ - $$) db 0
 dw 0xaa55
-

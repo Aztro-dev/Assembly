@@ -16,7 +16,7 @@ extern uint64_t proc(uint64_t a); /* Prototype */
 
 __asm__(/* Assembly function body */
         "proc:\n"
-        "  mov x0, 0x100\n"
+        "  mov x0, #0x100\n"
         "  ret\n");
 
 int main(void) {
