@@ -159,7 +159,7 @@ solve:
 
 .print_bank_accounts:
 	test r12, r12
-	jz   .exit_print_bank_accounts
+	jz   .exit_print_bank_accounts ; If the count is 0, leave
 	dec  r12
 
 	call print_itoa; void print_itoa(rdi n)
