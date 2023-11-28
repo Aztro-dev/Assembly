@@ -1,5 +1,5 @@
 section .data
-    uint64_buffer db 20 ; 20 Digits in uint64_t
+    uint64_buffer db 20 dup(0x0) ; 20 Digits in uint64_t
 
 section .text
 global read_int
