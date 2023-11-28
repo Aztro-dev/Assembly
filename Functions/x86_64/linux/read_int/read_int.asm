@@ -1,5 +1,4 @@
 section .data
-    msg db "Hello world!", 0ah
     uint64_buffer db 20 ; 20 Digits in uint64_t
 
 section .text
