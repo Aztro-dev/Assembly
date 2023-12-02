@@ -103,8 +103,8 @@ return:
   ret
 
 print_end:
-  mov ax, 0003h
-  int 10h 
+  mov ax, 0x0003
+  int 0x10 
   [org 0x7c00]
   mov ah, 0x0e
   mov bx, end_drawing
