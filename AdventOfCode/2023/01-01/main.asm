@@ -1,6 +1,5 @@
 section .data
 file_name db "x.in", 0x0
-file_name_len equ $ - file_name
 number_buffer db 20 dup(0x0)
 newline db 0x0a
 
@@ -36,7 +35,6 @@ solve:
 			jg .not_num
 			cmp al, 0x0 ; 0 < curr_byte?
 			jl .not_num
-			mov al, byte [rsi] ; curr digit
 			; We are at this point if we found a character with a digit
 			cmp byte [first_digit], 0x0 ; If first_digit isn't set
 			jne .set_curr_digit
@@ -45,7 +43,6 @@ solve:
 			.set_curr_digit:
 				mov byte [curr_digit], al
 				
-
 			.not_num: ; aka skip
 			
 			xor rax, rax
@@ -67,7 +64,6 @@ solve:
 	
 	.exit_all_lines_loop:
 	ret
-
 _start:
 	mov     rax, 0x02; Open
 	mov     rdi, file_name
