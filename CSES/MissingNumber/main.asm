@@ -74,10 +74,12 @@ print_uint64:
 	mov rax, rdi
 	mov rsi, uint64_buffer
 	add rsi, 19; Last digit of buffer
+	mov r9, 0x0
 
 .loop:
 	cmp rax, 0x0
 	jle .exit_loop
+	inc r9
 	xor rdx, rdx
 	div r8
 	add dl, 48; To ASCII num
@@ -90,7 +92,9 @@ print_uint64:
 	mov rax, 0x1
 	mov rdi, 0x1
 	mov rsi, uint64_buffer
-	mov rdx, 20
+    add rsi, 20
+    sub rsi, r9
+	mov rdx, r9
 	syscall
 
 	pop rdx
