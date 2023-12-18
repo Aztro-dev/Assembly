@@ -1,7 +1,7 @@
 compile:
 	@nasm -f elf64 main.asm -o main.o
 	@nasm -f elf64 include.asm -o include.o
-	@gcc -march=x86-64 -o main main.o include.o 
+	@aarch64-elf-ld main.o include.o -o main
 	@rm main.o
 	@rm include.o
 
