@@ -17,7 +17,13 @@ space_to_start:
 
 
 pixel_loop:
-  call .plot_pixel
+  ; Input: cx is position, bl is color
+  ; plot_pixel(cx position, bl color)
+  .plot_pixel:
+    mov di, cx ; Load Destination Index register with ax value (the coords to put the pixel)
+    mov dx, bx ; Set the color
+    mov [es:di],dx ; Write pixel
+
   inc cx ; Increment position
 
   ; mov bx, cx ; Set color to pixel pos
@@ -26,52 +32,36 @@ pixel_loop:
   ; See if 1024 frames have gone by
   inc ax
   test ax, 64000 ; AND ax and 128
-  jz pixel_loop
-  ; every 1024 frames terminate_on_enter is called
-  call .terminate_on_enter
+  jnz pixel_loop
+  ; Every 1024 frames 
+  .clear_screen_on_enter:
+    push ax
+    xor ax, ax
+    mov ah, 0x1 ; Get state of keyboard buffer
+    int 0x16 ; Wait for keyboard input
+    cmp ah, 0x1c ; See if ah is enter
+    jne .end_clear_screen_on_enter ; exit
   ; call .clear_screen
+    .clear_screen:
+      mov al, 0 ; al gets the color value
+      mov ah, al ; Duplicate the color value
+      mov bx, 0x0A000 ;
+      mov es, bx ; es set to start of VGA
+      mov cx, 32000 ; cx set to number of words
+      mov di, 0 ; di set to pixel offset 0
+      rep stosw ; While cx <> 0 Do
+     ; Memory[es:di] := ax
+     ; di := di + 2
+     ; cx := cx - 1 
+   .end_clear_screen_on_enter:
+   pop ax
   jmp pixel_loop
-
-; Input: cx is position, bl is color
-; plot_pixel(cx position, bl color)
-.plot_pixel:
-  mov di, cx ; Load Destination Index register with ax value (the coords to put the pixel)
-  mov dx, bx ; Set the color
-  mov [es:di],dx ; Write pixel
   ret
 
-.terminate_on_enter:
-  xor ax, ax
-  mov ah, 0x1 ; Get state of keyboard buffer
-  int 0x16 ; Wait for keyboard input
-  cmp ah, 0x1c ; See if ah is enter
-  je print_end ; exit
-  ret
-
-.clear_screen:
-  xor ax, ax
-  mov ah, 0x1 ; Get state of keyboard buffer
-  int 0x16 ; Wait for keyboard input
-  cmp ah, 0x1c ; See if ah is enter
-  jne return
-
-  mov al, 0 ; al gets the color value
-  mov ah, al ; Duplicate the color value
-  mov bx, 0x0A000 ;
-  mov es, bx ; es set to start of VGA
-  mov cx, 32000 ; cx set to number of words
-  mov di, 0 ; di set to pixel offset 0
-  rep stosw ; While cx <> 0 Do
- ; Memory[es:di] := ax
- ; di := di + 2
- ; cx := cx - 1 
- ret
-return: 
-  ret
 
 print_end:
-  mov ax, 0003h
-  int 10h 
+  mov ax, 0x0003
+  int 0x10
   [org 0x7c00]
   mov ah, 0x0e
   mov bx, end_drawing
