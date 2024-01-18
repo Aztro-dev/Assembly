@@ -8,12 +8,19 @@ section .text
 longestCommonPrefix:
     xor rax, rax
     xor r8, r8 ; Index for all strings
+    ;mov r8, 0x0 ; Index for all strings
     .loop:
-        mov ah, byte [strs + r8]
+        mov rsi, strs
+        add rsi, r8
+        mov ah, byte [rsi]
+        cmp ah, 0x0
+        je .exit
+        
         mov rcx, r8 ; Iterator starts at index
         .check_next_string:
             cmp rcx, strs_len
-            je .after_check_next_string
+            jge .after_check_next_string
+            
             .while_not_next_string:
                 inc rcx
                 mov al, byte [strs + rcx]
