@@ -44,6 +44,10 @@ print_uint64:
         dec rsi
         jmp .loop
     .exit_loop:
+    mov rax, 0x1
+    mov rdi, 0x1
+    mov rsi, number_buffer
+    mov rdx, 20
     
     pop rdx
     pop rsi
@@ -80,6 +84,7 @@ print_int64:
     mov rdi, 0x01 ; STDOUT
     mov rsi, number_buffer
     mov rdx, 20
+    syscall
     
     pop rdx
     pop rsi
