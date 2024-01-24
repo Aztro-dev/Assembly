@@ -9,8 +9,8 @@ endstruc
 section .text
 global populate_linked_list
 
-; void populate_linked_list(struct linked_list *l);
+; void populate_linked_list(struct linked_list *l, struct linked_list* next);
 populate_linked_list:
   mov qword [rcx + data], 0x1
-  mov qword [rcx + next], rcx
+  mov qword [rcx + next], rdx
   ret
