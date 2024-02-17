@@ -18,15 +18,15 @@ atoi:   xor rax,rax ; rax = 0
         neg rdx ; rdx = -rdx
 .p      ret
 itoa:   std ; set direction flag to 1 (down)
-        mov r9,10
-        bt rax,63
-        setc bl
-        jnc .lp
+        mov r9,10 ; Base 10
+        bt rax,63 ; Check for sign
+        setc bl ; If carry flag is set, set bl to one
+        jnc .lp ; If no carry, skip negation
         neg rax
 .lp:    xor rdx,rdx
         div r9
-        xchg rax,rdx
-        add rax,'0'
+        xchg rax,rdx ; rdx = rax, rax = rdx 
+        add rax,'0' ; Char to ASCII
         stosb
         xchg rax,rdx
         test rax,rax
