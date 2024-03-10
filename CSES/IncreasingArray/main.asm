@@ -133,7 +133,6 @@ IncreasingArray:
 
 	;    atoi_rcx(rsi input) -> rcx output
 	call atoi_rcx
-	mov
 
 	jmp .set_arr_loop
 
