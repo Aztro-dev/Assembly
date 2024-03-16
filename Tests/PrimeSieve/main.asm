@@ -1,11 +1,12 @@
 section .rodata
-msg     db "Hello world!", 0ah
-n       dq 0x30
+msg     db "To what number?", 0x0a
+msg_len equ msg - $
 
 section .data
 brk_first_location db 0x0
 number_buffer db 20 dup(0x0)
 newline db 0x0a
+n dq 0x30
 
 section .text
 global  _start
@@ -59,6 +60,15 @@ prime_sieve:
 	ret
 
 _start:
+	mov rax, 0x1 ; write
+	mov rdi, 0x1 ; STDOUT
+	mov rsi, msg
+	mov rdx, msg_len
+	syscall
+
+	; call read_int
+	; mov qword[n], rax
+
 	push rbp
 	mov  rbp, rsp
 
