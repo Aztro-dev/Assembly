@@ -1,12 +1,12 @@
 section .rodata
 msg     db "To what number?", 0x0a
-msg_len equ msg - $
+msg_len equ 16
 
 section .data
 brk_first_location db 0x0
 number_buffer db 20 dup(0x0)
 newline db 0x0a
-n dq 0x30
+n       dq 0x30
 
 section .text
 global  _start
@@ -60,14 +60,14 @@ prime_sieve:
 	ret
 
 _start:
-	mov rax, 0x1 ; write
-	mov rdi, 0x1 ; STDOUT
+	mov rax, 0x1; write
+	mov rdi, 0x1; STDOUT
 	mov rsi, msg
 	mov rdx, msg_len
 	syscall
 
-	; call read_int
-	; mov qword[n], rax
+	call read_int
+	mov  qword[n], rax
 
 	push rbp
 	mov  rbp, rsp
@@ -106,6 +106,20 @@ _start:
 	mov rdi, 0
 	syscall
 
+	ret
+
+clear_number_buffer:
+	mov rcx, 20; size of number_buffer
+
+.loop:
+	test rcx, rcx
+	jz   .exit
+	dec  rcx
+	lea  rdi, [number_buffer + rcx]
+	mov  byte[rdi], 0x0
+	jmp  .loop
+
+.exit:
 	ret
 
 print_uint64:
@@ -149,5 +163,58 @@ print_uint64:
 	pop rax
 	ret
 
+read_int:
+	mov rdi, 0x0; STDIN
+	mov rsi, number_buffer
+	mov rdx, 0x1; One character at a time
+
+.read_loop:
+	xor rax, rax; READ syscall
+	syscall
+	cmp byte [rsi], 0x0; Null character
+	je  .exit_read_loop
+	cmp byte [rsi], 0x0a; newline
+	je  .exit_read_loop
+	sub rsi, 20
+	cmp rsi, number_buffer
+	je  .exit_read_loop
+	add rsi, 21; Reset to previous value and increment
+	jmp .read_loop
+
+.exit_read_loop:
+	mov  rdi, number_buffer
+	call atoi
+	call clear_number_buffer
+	ret
+
+atoi:
+	mov rax, 0; Set initial total to 0
+
+.convert:
+	movzx rsi, byte [rdi]; Get the current character
+	test  rsi, rsi; Check for \0
+	je    .done
+
+	cmp rsi, 0x0a; newline
+	je  .done
+
+	cmp rsi, 48; Anything less than 0 is invalid
+	jl  .error
+
+	cmp rsi, 57; Anything greater than 9 is invalid
+	jg  .error
+
+	sub  rsi, 48; Convert from ASCII to decimal
+	imul rax, 10; Multiply total by 10
+	add  rax, rsi; Add current digit to total
+
+	inc rdi; Get the address of the next character
+	jmp .convert
+
+.error:
+	mov rax, -1; Return -1 on error
+
+.done:
+	ret ; Return total or error code
 section    .bss
 primeArray resq 1
