@@ -1,7 +1,7 @@
 section .rodata
-no_solution: db "NO SOLUTION",0x0a,  0x0
-n_equals_one: db "1", 0x0a, 0x0
-n_equals_four: db "2 4 1 3", 0x0a, 0x0
+no_solution: db "NO SOLUTION",0x0a
+n_equals_one: db "1", 0x0a
+n_equals_four: db "2 4 1 3", 0x0a
 
 section .data
 number_buffer: times 20 db 0x0
@@ -15,7 +15,7 @@ solve:
 	jne .not_equals_one
 	mov rdi, 0x1
 	mov rsi, n_equals_one
-	mov rdx, 3
+	mov rdx, 2
 	syscall
 	ret
 
@@ -25,7 +25,7 @@ solve:
 	mov rax, 0x1
 	mov rdi, 0x1
 	mov rsi, n_equals_four
-	mov rdx, 9
+	mov rdx, 8
 	syscall
 	ret
 
@@ -35,7 +35,7 @@ solve:
 	mov rax, 0x1
 	mov rdi, 0x1
 	mov rsi, no_solution
-	mov rdx, 13
+	mov rdx, 12
 	syscall
 	ret
 
