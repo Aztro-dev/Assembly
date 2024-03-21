@@ -16,6 +16,7 @@ _start:
 	mov   rax, 1
 	mov   rdi, msg
 	movsd xmm0, [num]; move scalar double (a double precision float)
+	;     basically cheating
 	call  printf
 
 	pop rbp; realigns stack
