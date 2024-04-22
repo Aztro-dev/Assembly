@@ -1,5 +1,4 @@
 %include "include.asm"
-extern   print_include
 
 section .text
 global  _start
