@@ -3,3 +3,7 @@ main: main.o
 
 main.o: main.asm
 	nasm -f elf64 main.asm
+
+clean:
+	rm -f main.o
+	rm -f main
