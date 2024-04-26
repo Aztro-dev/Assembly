@@ -78,27 +78,34 @@ move_circle:
 	cvttss2si r8, xmm0; r8 = (int)radius
 
 .x_checks:
-	cmp rdi, r8
-	jle .flip_x_vel
+	cmp    rdi, r8
+	cmovbe rdi, r8
+	jle    .flip_x_vel
 
-	mov r9, SCREEN_WIDTH
-	sub r9, r8
-	cmp rdi, r9
-	jge .flip_x_vel
-	jmp .y_checks
+	mov    r9, SCREEN_WIDTH
+	sub    r9, r8
+	cmp    rdi, r9
+	cmovae rdi, r9
+	cmp    rdi, r9
+	jge    .flip_x_vel
+	jmp    .y_checks
 
 .flip_x_vel:
 	neg rcx
 
 .y_checks:
-	cmp rsi, r8
-	jle .flip_y_vel
+	cmp    rsi, r8
+	cmovbe rsi, r8
+	cmp    rsi, r8
+	jle    .flip_y_vel
 
-	mov r9, SCREEN_HEIGHT
-	sub r9, r8
-	cmp rsi, r9
-	jge .flip_y_vel
-	jmp .exit
+	mov    r9, SCREEN_HEIGHT
+	sub    r9, r8
+	cmp    rsi, r9
+	cmovae rsi, r9
+	cmp    rsi, r9
+	jge    .flip_y_vel
+	jmp    .exit
 
 .flip_y_vel:
 	neg rdx
