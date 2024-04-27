@@ -28,15 +28,17 @@ interpret:
 	mov al, byte [r9]
 	cmp al, 0x0
 	je  .exit_loop
+
+.check_right_arrow:
 	cmp al, '>'
 	jne .check_left_arrow
-	inc rdi; ptr++
+	inc rsi; ptr++
 	jmp .loop
 
 .check_left_arrow:
 	cmp al, '<'
 	jne .check_plus
-	dec rdi; ptr--
+	dec rsi; ptr--
 	jmp .loop
 
 .check_plus:
@@ -102,7 +104,7 @@ interpret:
 	jne .loop
 	mov al, byte[r9]
 	cmp al, 0x0
-	je  .loop; Skip if *ptr is not true
+	jne .loop; Skip if *ptr is true
 	mov rcx, 0x1; loop counter
 
 .closed_bracket_loop:
