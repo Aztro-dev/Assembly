@@ -20,7 +20,7 @@ global  _start
 interpret:
 	mov r8, TAPE_SIZE
 	sar r8, 1; middle of tape
-	mov r9, input
+	lea r9, [input - 1]
 	lea rsi, [tape + r8]; Pointer
 
 .loop:
@@ -83,7 +83,7 @@ interpret:
 
 .open_bracket_loop:
 	cmp rcx, 0x0
-	je  .loop
+	jle .loop
 	inc r9
 	mov al, byte[r9]
 	cmp al, '['
@@ -107,7 +107,7 @@ interpret:
 
 .closed_bracket_loop:
 	cmp rcx, 0x0
-	je  .loop
+	jle .loop
 	dec r9
 	mov al, byte[r9]
 	cmp al, '['
@@ -143,6 +143,7 @@ _start:
 
 	mov rax, SYS_CLOSE
 	mov rdi, qword[file_descriptor]
+	syscall
 
 	mov rax, 60
 	mov rdi, 0
