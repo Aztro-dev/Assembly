@@ -4,5 +4,5 @@ compile:
 	@rm main.o
 
 clean:
-	@rm main.o
-	@rm main
+	@rm -f main.o
+	@rm -f main
