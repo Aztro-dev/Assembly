@@ -5,13 +5,14 @@
 %define STDIN 0x0
 %define STDOUT 0x1
 %define TAPE_SIZE 30000
+%define INPUT_SIZE 4096
 
 section .rodata:
 file_name db "hello_world.bf", 0x0
 
 section .data
 tape    times TAPE_SIZE db 0x0
-input   times 1024 db 0x0
+input   times INPUT_SIZE db 0x0
 file_descriptor dq 1
 
 section .text
@@ -138,7 +139,7 @@ _start:
 	mov rax, SYS_READ
 	mov rdi, qword[file_descriptor]
 	mov rsi, input
-	mov rdx, 1024
+	mov rdx, INPUT_SIZE
 	syscall
 
 	call interpret
