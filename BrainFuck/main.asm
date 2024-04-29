@@ -7,7 +7,9 @@
 %define TAPE_SIZE 30000
 
 section .rodata:
-file_name db "hello_world.bf"
+file_name db "bruh.bf", 0x0
+exit_message db 0x0a, "Exited", 0x0a
+exit_message_len equ $ - exit_message
 
 section .data
 tape    times TAPE_SIZE db 0x0
@@ -44,17 +46,17 @@ interpret:
 .check_plus:
 	cmp al, '+'
 	jne .check_minus
-	mov ah, byte[rsi]
-	inc ah
-	mov byte[rsi], ah
+	mov al, byte[rsi]
+	inc al
+	mov byte[rsi], al
 	jmp .loop
 
 .check_minus:
 	cmp al, '-'
 	jne .check_dot
-	mov ah, byte[rsi]
-	dec ah
-	mov byte[rsi], ah
+	mov al, byte[rsi]
+	dec al
+	mov byte[rsi], al
 	jmp .loop
 
 .check_dot:
@@ -124,6 +126,11 @@ interpret:
 	jmp .closed_bracket_loop
 
 .exit_loop:
+	mov rax, SYS_WRITE
+	mov rdi, STDOUT
+	mov rsi, exit_message
+	mov rdx, exit_message_len
+	syscall
 	ret
 
 _start:
