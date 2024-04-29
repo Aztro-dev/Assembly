@@ -7,9 +7,7 @@
 %define TAPE_SIZE 30000
 
 section .rodata:
-file_name db "bruh.bf", 0x0
-exit_message db 0x0a, "Exited", 0x0a
-exit_message_len equ $ - exit_message
+file_name db "hello_world.bf", 0x0
 
 section .data
 tape    times TAPE_SIZE db 0x0
@@ -80,9 +78,9 @@ interpret:
 .check_open_bracket:
 	cmp al, '['
 	jne .check_closed_bracket
-	mov al, byte[r9]
+	mov al, byte[rsi]
 	cmp al, 0x0
-	je  .loop; Skip if *ptr is not true
+	jne .loop; Skip if *ptr is not true
 	mov rcx, 0x1; loop counter
 
 .open_bracket_loop:
@@ -104,9 +102,9 @@ interpret:
 .check_closed_bracket:
 	cmp al, ']'
 	jne .loop
-	mov al, byte[r9]
+	mov al, byte[rsi]
 	cmp al, 0x0
-	jne .loop; Skip if *ptr is true
+	je  .loop; Skip if *ptr is true
 	mov rcx, 0x1; loop counter
 
 .closed_bracket_loop:
@@ -126,11 +124,6 @@ interpret:
 	jmp .closed_bracket_loop
 
 .exit_loop:
-	mov rax, SYS_WRITE
-	mov rdi, STDOUT
-	mov rsi, exit_message
-	mov rdx, exit_message_len
-	syscall
 	ret
 
 _start:
