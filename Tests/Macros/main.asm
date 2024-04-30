@@ -2,23 +2,24 @@
 %define SYS_WRITE 1
 %define STDOUT 1
 
-%macro print_str 2
+%macro println 1
+  jmp %%p_str
+%%msg db %1, 0x0a
+%%p_str:
   mov rax, SYS_WRITE
   mov rdi, STDOUT
-  mov rsi, %1
-  mov rdx, %2
+  mov rsi, %%msg
+  mov rdx, %%p_str - %%msg
   syscall
 %endmacro
 
 section .rodata
-msg db "Macros", 0x0
-msg_len equ $ - msg
 
 section .text
 global _start
 
 _start:
-  print_str msg, msg_len
+  println "Println macro"
 
   mov rax, SYS_EXIT
   mov rdi, 0x0 ; No errors
