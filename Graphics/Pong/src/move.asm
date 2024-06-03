@@ -12,12 +12,12 @@ color dq 0xFFFFFFFF
 
 section .text
 global move_paddle
-global draw_paddles
 move_paddle:
 	mov dword[positions], 0x0
 	mov dword[positions + 0x4], 0x0
 	ret
 
+global draw_paddles
 draw_paddles:
 	mov  edi, SCREEN_WIDTH - 3 * PADDLE_WIDTH; xPos
 	mov  esi, dword[positions + 4]; yPos
