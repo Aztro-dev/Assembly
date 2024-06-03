@@ -43,15 +43,15 @@ _start:
 	call move_ball
 
 	; Start drawing paddles
-	mov  edi, SCREEN_WIDTH - 3 * PADDLE_WIDTH; xPos
+	mov  edi, dword[paddle_positions]; xPos
 	mov  esi, dword[paddle_positions + 4]; yPos
 	mov  edx, PADDLE_WIDTH
 	mov  ecx, PADDLE_HEIGHT
 	mov  r8, qword[color]
 	call DrawRectangle
 
-	mov  edi, 2 * PADDLE_WIDTH; xPos
-	mov  esi, dword[paddle_positions]; yPos
+	mov  edi, dword[paddle_positions + 8]; xPos
+	mov  esi, dword[paddle_positions + 12]; yPos
 	mov  edx, PADDLE_WIDTH
 	mov  ecx, PADDLE_HEIGHT
 	mov  r8, qword[color]
