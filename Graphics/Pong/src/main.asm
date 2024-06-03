@@ -4,9 +4,6 @@
 %define PADDLE_HEIGHT SCREEN_HEIGHT / 8
 %define MAX_FPS 200
 %include "src/move.asm"
-section .data
-
-title db "Pong", 0x0
 
 section .text
 global  _start
@@ -17,6 +14,8 @@ extern  CloseWindow
 extern  BeginDrawing
 extern  EndDrawing
 extern  ClearBackground
+extern  DrawCircle
+extern  DrawRectangle
 
 extern DrawFPS
 extern SetTargetFPS
@@ -41,7 +40,30 @@ _start:
 	call ClearBackground
 
 	call move_paddle
+	call move_ball
 
+	; Start drawing paddles
+	mov  edi, SCREEN_WIDTH - 3 * PADDLE_WIDTH; xPos
+	mov  esi, dword[paddle_positions + 4]; yPos
+	mov  edx, PADDLE_WIDTH
+	mov  ecx, PADDLE_HEIGHT
+	mov  r8, qword[color]
+	call DrawRectangle
+
+	mov  edi, 2 * PADDLE_WIDTH; xPos
+	mov  esi, dword[paddle_positions]; yPos
+	mov  edx, PADDLE_WIDTH
+	mov  ecx, PADDLE_HEIGHT
+	mov  r8, qword[color]
+	call DrawRectangle
+	; End drawing paddles
+
+	; Start drawing ball
+	mov edi, dword [ball_position]
+	mov esi, dword [ball_position + 4]
+	movss xmm0, dword [ball_radius]
+	mov rdx, qword [color]
+	call DrawCircle
 
 	mov  rdi, 10
 	mov  rsi, 10
@@ -56,3 +78,5 @@ _start:
 	call _exit
 	ret
 
+section .data
+title db "Pong", 0x0
