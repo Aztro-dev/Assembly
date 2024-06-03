@@ -3,6 +3,10 @@
 %define PADDLE_WIDTH SCREEN_WIDTH / 80
 %define PADDLE_HEIGHT SCREEN_HEIGHT / 8
 %define MAX_FPS 200
+%include "src/move.asm"
+section .data
+
+title db "Pong", 0x0
 
 section .text
 global  _start
@@ -14,7 +18,6 @@ extern  BeginDrawing
 extern  EndDrawing
 extern  ClearBackground
 
-extern DrawRectangle
 extern DrawFPS
 extern SetTargetFPS
 extern GetFrameTime
@@ -39,19 +42,6 @@ _start:
 
 	call move_paddle
 
-	mov  edi, SCREEN_WIDTH - 3 * PADDLE_WIDTH; xPos
-	mov  esi, dword[positions + 4]; yPos
-	mov  edx, PADDLE_WIDTH
-	mov  ecx, PADDLE_HEIGHT
-	mov  r8, qword[color]; Opaque
-	call DrawRectangle
-
-	mov  edi, 2 * PADDLE_WIDTH; xPos
-	mov  esi, dword[positions]; yPos
-	mov  edx, PADDLE_WIDTH
-	mov  ecx, PADDLE_HEIGHT
-	mov  r8, qword[color]; Opaque
-	call DrawRectangle
 
 	mov  rdi, 10
 	mov  rsi, 10
@@ -66,15 +56,3 @@ _start:
 	call _exit
 	ret
 
-move_paddle:
-	mov dword[positions], 0x0
-	mov dword[positions + 0x4], 0x0
-	ret
-
-section .data
-
-positions dd 0x0, 0x0
-
-color dq 0xFFFFFFFF
-
-title db "Pong", 0x0
