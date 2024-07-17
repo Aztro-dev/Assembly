@@ -1,14 +1,38 @@
 %define SCREEN_WIDTH 800
 %define SCREEN_HEIGHT 600
+
 %define PADDLE_WIDTH SCREEN_HEIGHT / 80
 %define PADDLE_HEIGHT SCREEN_HEIGHT / 8
+%define PADDLE_SPEED SCREEN_HEIGHT / 200
+
 %define BALL_RADIUS 8
 
+%define KEY_DOWN 264
+%define KEY_UP 265
+
 extern CheckCollisionCircleRec
+extern IsKeyDown
 
 section .text
 global move_paddle
 move_paddle:
+	mov r8d, dword[paddle_positions + 4]
+	jmp .exit
+	.check_down:
+	mov rdi, KEY_DOWN
+	call IsKeyDown
+	cmp rax, 0x0
+	je .check_up
+	add r8d, PADDLE_SPEED 
+	.check_up:
+	mov rdi, KEY_UP
+	call IsKeyDown
+	cmp rax, 0x0
+	je .exit
+	sub r8d, PADDLE_SPEED 
+	
+	.exit:
+	mov dword[paddle_positions + 4], r8d
 	ret
 
 global move_ball
