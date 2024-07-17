@@ -110,11 +110,7 @@ check_for_hit:
 	cvtdq2ps xmm3, xmm3
 
 	call CheckCollisionCircleRec
-	;mov rsi, rax
 	and rax, 0x1
-	;mov rax, 0x1
-	;mov rdi, print_int_message
-	; call print_formatted
 	ret
 section .data
 ; Trust me bro
