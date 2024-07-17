@@ -3,6 +3,7 @@
 %define PADDLE_WIDTH SCREEN_WIDTH / 80
 %define PADDLE_HEIGHT SCREEN_HEIGHT / 8
 %define MAX_FPS 200
+
 %include "src/move.asm"
 
 section .text
@@ -39,8 +40,22 @@ _start:
 	mov  rdi, 0xFF181818
 	call ClearBackground
 
-	call move_paddle
+	; First paddle
+	lea rdi, [paddle_positions + 4]
+	mov rax, KEY_S
+	mov rbx, KEY_W
+	call move_paddles
+	; Second paddle
+	lea rdi, [paddle_positions + 12]
+	mov rax, KEY_DOWN
+	mov rbx, KEY_UP
+	call move_paddles
+
 	call move_ball
+	test rax, 0x1
+	je .skip_game_reset
+	call reset_game
+	.skip_game_reset:
 
 	; Start drawing paddles
 	mov  edi, dword[paddle_positions]; xPos
@@ -76,6 +91,20 @@ _start:
 	call CloseWindow
 	mov  rdi, 0
 	call _exit
+	ret
+
+reset_game:
+	mov dword[paddle_positions], 2 * PADDLE_WIDTH
+	mov dword[paddle_positions + 4], SCREEN_HEIGHT / 2 - PADDLE_HEIGHT
+	mov dword[paddle_positions + 8], SCREEN_WIDTH - 3 * PADDLE_WIDTH
+	mov dword[paddle_positions + 12], SCREEN_HEIGHT / 2 - PADDLE_HEIGHT
+
+	mov dword[ball_position], SCREEN_WIDTH / 2
+	mov dword[ball_position + 4], SCREEN_HEIGHT / 2
+	mov qword[ball_position + 8], 0x0
+
+	mov dword[ball_velocities], 0x3
+	mov dword[ball_velocities + 4], 0x2
 	ret
 
 section .data
