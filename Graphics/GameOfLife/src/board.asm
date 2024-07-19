@@ -1,7 +1,7 @@
 %define SCREEN_WIDTH 600
 %define SCREEN_HEIGHT 600
 
-%define CELL_NUMBER 20
+%define CELL_NUMBER 3
 %define CELL_SIZE SCREEN_WIDTH / CELL_NUMBER
 
 %define MOUSE_LEFT 0
@@ -16,10 +16,105 @@ extern GetWindowPosition
 extern IsCursorOnScreen
 
 section .text
+; rdi = x_pos, rsi = y_pos
+count_surrounding_cells:
+  xor rax, rax ; al = count
+  ; int i = x_pos - 1
+  mov r8, rdi
+  sub r8, CELL_NUMBER
+  ; for(i; i <= x_pos + 1; i++){
+  .x_loop:
+    mov r10, rdi ; r10 = temp
+    add r10, CELL_NUMBER 
+    cmp r8, r10
+    jg .exit
+    ; int ii = y_pos - 1
+    mov r9, rsi
+    dec r9
+    ; for(ii; ii <= y_pos + 1; ii++){
+    .y_loop:
+      mov r10, rsi ; r10 = temp
+      inc r10
+      cmp r9, r10
+      jg .exit_y_loop
+
+      ; if (i == x_pos && ii == y_pos) continue
+      cmp r8, rdi
+      jne .check_min_coords
+      cmp r9, rsi
+      je .continue
+      
+      ; if (i < 0 || ii < 0) continue
+      .check_min_coords:
+      cmp r8, 0x0
+      jl .continue
+      cmp r9, 0x0
+      jl .continue
+  
+      ; if (i >= CELL_NUMBER * CELL_NUMBER || ii >= CELL_NUMBER) continue
+      .check_max_coords:
+      cmp r8, CELL_NUMBER * CELL_NUMBER
+      jge .continue
+      cmp r9, CELL_NUMBER
+      jge .continue
+      
+      add al, byte[board + r8 + r9]
+      .continue:
+      inc r9
+      jmp .y_loop
+    .exit_y_loop:
+    add r8, CELL_NUMBER
+    jmp .x_loop
+  
+  .exit:
+  ret
+
 global run_game
 run_game:
+  xor rdi, rdi
+  xor rsi, rsi
+  .outer_loop:
+    cmp rdi, CELL_NUMBER
+    jge .exit
+    .inner_loop:
+    cmp rsi, CELL_NUMBER
+    jge .exit_inner_loop
 
+    mov rax, rdi
+    mov r9, CELL_NUMBER
+    mul r9
 
+    push rdi
+    mov rdi, rax
+    call count_surrounding_cells
+    .after_count_surrounding_cells:
+
+    cmp rax, 0x3 ; If there are 3 living cells around, then the current cell is alive
+    jne .skip_three_check
+    mov byte[temp_board + rdi + rsi], 0x1
+    jmp .next_iteration
+    .skip_three_check:
+
+    .next_iteration:
+    pop rdi
+    inc rsi
+    jmp .inner_loop
+
+    .exit_inner_loop:
+    inc rdi
+    jmp .outer_loop
+  .exit:
+
+  mov rdi, 0x0
+  .loop:
+    cmp rdi, CELL_NUMBER * CELL_NUMBER
+    jge .exit_loop
+    mov al, byte[temp_board + rdi]
+    mov byte[board + rdi], al
+    inc rdi
+    jmp .loop
+  .exit_loop:
+  
   ret
 
 global draw_board
@@ -128,9 +223,9 @@ clear_board:
 
 section .data
   board times(CELL_NUMBER * CELL_NUMBER) db 0x0
+  temp_board times(CELL_NUMBER * CELL_NUMBER) db 0x0
   temp times (4) dd 0x0
 
 section .rodata
   cell_color dq 0xFFFFFFFF
   background_color dq 0x00000000
-  int_message db "%d", 0x0a, 0x0

@@ -5,6 +5,8 @@
 %define KEY_ENTER 257
 ; Uncapped
 %define MAX_FPS 200
+; One update every SIMULATION_SPEED frames
+%define SIMULATION_SPEED 100
 
 %include "src/board.asm"
 
@@ -45,10 +47,25 @@ _start:
 
 	test byte[should_freeze], 0x1
 	jz .freeze
+	mov rax, qword[frame_count]
+	inc rax
+	mov qword[frame_count], rax
+
+	xor rdx, rdx
+	mov r9, SIMULATION_SPEED
+	div r9 ; Remainder is in rdx
+	test rdx, rdx
+	jnz .after_freeze
+	
 	call run_game
 	jmp .after_freeze
 	.freeze:
 	call populate_board
+	mov rdi, KEY_ENTER
+	call IsKeyPressed
+	test rax, 0x1
+	je .after_freeze ; basically skip_clear
+	call clear_board
 	.after_freeze:
 
 	call draw_board
@@ -60,12 +77,6 @@ _start:
 	call freeze_game
 	.skip_freeze:
 
-	mov rdi, KEY_ENTER
-	call IsKeyPressed
-	test rax, 0x1
-	je .skip_clear
-	call clear_board
-	.skip_clear:
 
 	mov  rdi, 10
 	mov  rsi, 10
@@ -89,4 +100,6 @@ freeze_game:
 
 section .data
 should_freeze db 0x0
+frame_count dq 0x0
+section .rodata
 title db "Game Of Life", 0x0

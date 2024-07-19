@@ -94,6 +94,15 @@ print_newline:
 	syscall
 	ret
 
+global print_string
+print_string:
+	mov rdx, rsi
+	mov rsi, rdi
+	mov rax, SYS_WRITE
+	mov rdi, STDOUT
+	syscall
+	ret
+
 section .data
 number_buffer db 20 dup(0x0)
 newline db 0x0a
