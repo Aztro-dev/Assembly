@@ -1,7 +1,7 @@
 %define SCREEN_WIDTH 600
 %define SCREEN_HEIGHT 600
 
-%define CELL_NUMBER 3
+%define CELL_NUMBER 20
 %define CELL_SIZE SCREEN_WIDTH / CELL_NUMBER
 
 %define MOUSE_LEFT 0
@@ -111,6 +111,7 @@ run_game:
     jge .exit_loop
     mov al, byte[temp_board + rdi]
     mov byte[board + rdi], al
+    mov byte[temp_board + rdi], 0x0 ; Clear it after use
     inc rdi
     jmp .loop
   .exit_loop:
