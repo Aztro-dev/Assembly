@@ -1,7 +1,7 @@
 %define SCREEN_WIDTH 600
 %define SCREEN_HEIGHT 600
 
-%define CELL_NUMBER 20
+%define CELL_NUMBER 3
 %define CELL_SIZE SCREEN_WIDTH / CELL_NUMBER
 
 %define MOUSE_LEFT 0
@@ -94,6 +94,12 @@ run_game:
     mov byte[temp_board + rdi + rsi], 0x1
     jmp .next_iteration
     .skip_three_check:
+
+    cmp rax, 0x2
+    jne .next_iteration
+    cmp byte[board + rdi + rsi], 0x1
+    jne .next_iteration
+    mov byte[temp_board + rdi + rsi], 0x1
 
     .next_iteration:
     pop rdi
