@@ -1,12 +1,12 @@
-%define SCREEN_WIDTH 600
-%define SCREEN_HEIGHT 600
+%define SCREEN_WIDTH 800
+%define SCREEN_HEIGHT 800
 
 %define KEY_SPACE 32
 %define KEY_ENTER 257
 ; Uncapped
 %define MAX_FPS 200
 ; One update every SIMULATION_SPEED frames
-%define SIMULATION_SPEED 100
+%define SIMULATION_SPEED 10
 
 %include "src/board.asm"
 
