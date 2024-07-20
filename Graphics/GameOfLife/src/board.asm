@@ -1,7 +1,7 @@
 %define SCREEN_WIDTH 600
 %define SCREEN_HEIGHT 600
 
-%define CELL_NUMBER 3
+%define CELL_NUMBER 20
 %define CELL_SIZE SCREEN_WIDTH / CELL_NUMBER
 
 %define MOUSE_LEFT 0
@@ -74,44 +74,37 @@ run_game:
   xor rdi, rdi
   xor rsi, rsi
   .outer_loop:
-    cmp rdi, CELL_NUMBER
+    cmp rdi, CELL_NUMBER * CELL_NUMBER 
     jge .exit
+    xor rsi, rsi
     .inner_loop:
     cmp rsi, CELL_NUMBER
     jge .exit_inner_loop
 
-    mov rax, rdi
-    mov r9, CELL_NUMBER
-    mul r9
-
-    push rdi
-    mov rdi, rax
     call count_surrounding_cells
-    .after_count_surrounding_cells:
 
     cmp rax, 0x3 ; If there are 3 living cells around, then the current cell is alive
     jne .skip_three_check
     mov byte[temp_board + rdi + rsi], 0x1
-    jmp .next_iteration
+    jmp .continue
     .skip_three_check:
 
     cmp rax, 0x2
-    jne .next_iteration
+    jne .continue
     cmp byte[board + rdi + rsi], 0x1
-    jne .next_iteration
+    jne .continue
     mov byte[temp_board + rdi + rsi], 0x1
 
-    .next_iteration:
-    pop rdi
+    .continue:
     inc rsi
     jmp .inner_loop
 
     .exit_inner_loop:
-    inc rdi
+    add rdi, CELL_NUMBER
     jmp .outer_loop
   .exit:
 
-  mov rdi, 0x0
+  xor rdi, rdi
   .loop:
     cmp rdi, CELL_NUMBER * CELL_NUMBER
     jge .exit_loop
@@ -121,9 +114,7 @@ run_game:
     inc rdi
     jmp .loop
   .exit_loop:
-  
   ret
-
 global draw_board
 draw_board:
   mov r10, 0x0
@@ -226,8 +217,6 @@ clear_board:
   
   .exit:
   ret
-
-
 section .data
   board times(CELL_NUMBER * CELL_NUMBER) db 0x0
   temp_board times(CELL_NUMBER * CELL_NUMBER) db 0x0
