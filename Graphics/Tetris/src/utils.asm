@@ -116,6 +116,65 @@ print_string:
 	syscall
 	ret
 
+; rdi = seed
+; https://stackoverflow.com/a/1026370
+rand:
+  call GetFrameTime ; Result stored in xmm0
+  cvttps2dq xmm1, xmm0
+  cvtdq2ps xmm1, xmm0
+  subps xmm0, xmm1 ; We only care about the decimal
+  cvttps2dq xmm0, xmm0
+  movq rsi, xmm0
+
+	mov rax, rsi
+	mov r9, 1103515245
+	mul r9
+	add rax, 12345
+	mov rsi, rax
+
+	mov r9, 65536
+	xor rdx, rdx
+	div r9
+	xor rdx, rdx
+	mov r9, 2048
+	div r9
+	mov rcx, rdx ; result = rcx
+
+	mov rax, rsi
+	mov r9, 1103515245
+	mul r9
+	add rax, 12345
+	mov rsi, rax
+
+	sal rcx, 10 ; result <<= 10;
+
+	mov r9, 65536
+	xor rdx, rdx
+	div r9
+	xor rdx, rdx
+	mov r9, 1024
+	div r9
+	xor rcx, rdx ; result ^= (next / 65536) % 1024;
+
+	mov rax, rsi
+	mov r9, 1103515245
+	mul r9
+	add rax, 12345
+	mov rsi, rax
+
+	sal rcx, 10 ; result <<= 10;
+
+	mov r9, 65536
+	xor rdx, rdx
+	div r9
+	xor rdx, rdx
+	mov r9, 1024
+	div r9
+	xor rcx, rdx ; result ^= (next / 65536) % 1024;
+
+	mov rax, rcx
+	ret
+
 section .data
 number_buffer db 20 dup(0x0)
 newline db 0x0a
