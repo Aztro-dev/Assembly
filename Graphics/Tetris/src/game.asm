@@ -1,25 +1,39 @@
-%define SCREEN_WIDTH 800
-%define SCREEN_HEIGHT 1000
-
 %define BOARD_WIDTH SCREEN_WIDTH / 2
 %define BOARD_HEIGHT SCREEN_HEIGHT * 80 / 100
 %define CELL_SIZE BOARD_WIDTH / 10
 
 %define NO_COLOR 0xFF444444
+%define BLACK 0xFF000000
+%define WHITE 0xFFFFFFFF
 %define LIGHT_BLUE 0xFFFFFF00
 %define YELLOW 0xFF00FFFF
+%define PURPLE 0xFFC000C0
+%define GREEN 0xFF00FF00
+%define RED 0xFF0000FF
+%define DARK_BLUE 0xFFFF0000
+%define ORANGE 0xFF007FFF
+
+%include "src/utils.asm"
+%include "src/tetriminoes.asm"
 
 extern DrawRectangle
 extern DrawRectangleLines
+extern DrawRectangleLinesEx
 
 section .text
+global run_game
+run_game:
+  call move_piece
+  ret
+  
 global draw_board
   draw_board:
-    mov rdi, (SCREEN_WIDTH - BOARD_WIDTH) / 2
-    mov rsi, (SCREEN_HEIGHT - BOARD_HEIGHT) / 2
-    mov rdx, BOARD_WIDTH
-    mov rcx, BOARD_HEIGHT
-    mov r8, 0xFF444444
+    ; Outer border
+    mov rdi, (SCREEN_WIDTH - BOARD_WIDTH) / 2 - 1
+    mov rsi, (SCREEN_HEIGHT - BOARD_HEIGHT) / 2 - 1
+    mov rdx, BOARD_WIDTH + 0x2
+    mov rcx, BOARD_HEIGHT + 0x1
+    mov r8, BLACK
     call DrawRectangleLines
 
     xor r9, r9 ; Iterator
@@ -59,8 +73,63 @@ global draw_board
         add rsi, (SCREEN_HEIGHT - BOARD_HEIGHT) / 2 ;Offset to the board position
         mov rdx, CELL_SIZE
         mov rcx, CELL_SIZE
+
         call DrawRectangle
         
+        .continue:
+        pop r10
+        pop r9
+        inc r10
+        jmp .inner_loop
+      .exit_inner_loop:
+      
+      inc r9
+      jmp .outer_loop
+    .exit:
+    call draw_board_lines
+    ret
+draw_board_lines:
+    xor r9, r9 ; Iterator
+    .outer_loop:
+      cmp r9, 20 ; Height (cells)
+      je .exit
+      xor r10, r10 ; Iterator
+      .inner_loop:
+        cmp r10, 10 ; Width (cells)
+        je .exit_inner_loop
+        push r9
+        push r10
+
+        mov rax, r10
+        mov r11, CELL_SIZE
+        mul r11
+        mov rdi, rax
+
+        mov rax, r9
+        mov r11, CELL_SIZE
+        mul r11
+        mov rsi, rax
+
+        add rdi, (SCREEN_WIDTH - BOARD_WIDTH) / 2 ;Offset to the board position
+        add rsi, (SCREEN_HEIGHT - BOARD_HEIGHT) / 2 ;Offset to the board position
+        mov rdx, CELL_SIZE
+        mov rcx, CELL_SIZE
+
+        mov dword[temp], edi
+        mov dword[temp + 4], esi
+        mov dword[temp + 8], edx
+        mov dword[temp + 12], ecx
+        
+        movq xmm0, qword[temp]
+        cvtdq2ps xmm0, xmm0
+        movq xmm1, qword[temp + 8]
+        cvtdq2ps xmm1, xmm1
+
+        movss xmm2, dword[border_thickness]
+      
+        mov rdi, BLACK
+
+        call DrawRectangleLinesEx
         
         .continue:
         pop r10
@@ -76,6 +145,8 @@ global draw_board
 
 section .data
   ; Tetris board is 10 x 20 cells
-  board times (10 * 20) db 0x2
+  board times (10 * 20) db 0x0
+  temp times (4) dd 0x0
 section .rodata
-  colors_array dq NO_COLOR, LIGHT_BLUE, YELLOW
+  colors_array dq NO_COLOR, LIGHT_BLUE, YELLOW, PURPLE, GREEN, RED, DARK_BLUE, ORANGE
+  border_thickness dd 2.0
