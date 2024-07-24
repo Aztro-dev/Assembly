@@ -1,4 +1,4 @@
-%define SIMULATION_SPEED MAX_FPS / 50 ; 50 times per second
+%define SIMULATION_SPEED MAX_FPS / 5 ; 5 times per second
 %define KEY_RIGHT 262
 %define KEY_LEFT 263
 
@@ -10,7 +10,7 @@
 %define L_PIECE 0x6
 %define J_PIECE 0x7
 
-extern IsKeyDown
+extern IsKeyPressed
 extern GetFrameTime
 
 %macro plot_pixel 3
@@ -43,7 +43,8 @@ move_piece:
   mov dil, byte[curr_piece + 1] ; X_POS
   mov sil, byte[curr_piece + 2] ; Y_POS
 
-  cmp sil, 18
+
+  cmp sil, 17
   jl .skip_reset
   .place:
   call pull_from_bag
@@ -60,6 +61,8 @@ move_piece:
   plot_pixel 0x0, dil, sil ; clear prev
   sub dil, 0x3
   inc sil
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
   plot_pixel byte[curr_piece], dil, sil 
   inc dil
   plot_pixel byte[curr_piece], dil, sil 
@@ -81,6 +84,8 @@ move_piece:
   plot_pixel 0x0, dil, sil ; clear prev
   dec sil
   inc sil
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
   plot_pixel byte[curr_piece], dil, sil 
   inc dil
   plot_pixel byte[curr_piece], dil, sil 
@@ -92,7 +97,7 @@ move_piece:
   jmp .exit_checks
   .check_t_piece:
   cmp byte[curr_piece], T_PIECE
-  jne .exit_checks
+  jne .check_s_piece
   plot_pixel 0x0, dil, sil ; clear prev
   inc dil
   plot_pixel 0x0, dil, sil ; clear prev
@@ -104,6 +109,8 @@ move_piece:
   dec dil
   dec sil
   inc sil
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
   plot_pixel byte[curr_piece], dil, sil 
   inc dil
   plot_pixel byte[curr_piece], dil, sil 
@@ -115,6 +122,101 @@ move_piece:
   dec dil
   dec sil
   jmp .exit_checks
+  .check_s_piece:
+  cmp byte[curr_piece], S_PIECE
+  jne .check_z_piece
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc sil
+  dec dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  dec dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc dil
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
+  plot_pixel byte[curr_piece], dil, sil 
+  inc dil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc sil
+  dec dil
+  plot_pixel byte[curr_piece], dil, sil 
+  dec dil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc dil
+  dec sil
+  jmp .exit_checks
+  .check_z_piece:
+  cmp byte[curr_piece], Z_PIECE
+  jne .check_l_piece
+  plot_pixel 0x0, dil, sil ; clear prev
+  dec dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc sil
+  inc dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  dec dil
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
+  plot_pixel byte[curr_piece], dil, sil 
+  dec dil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc sil
+  inc dil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc dil
+  plot_pixel byte[curr_piece], dil, sil 
+  dec dil
+  dec sil
+  jmp .exit_checks
+  .check_l_piece:
+  cmp byte[curr_piece], L_PIECE
+  jne .j_piece
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc sil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc sil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  dec dil
+  sub sil, 0x1
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
+  plot_pixel byte[curr_piece], dil, sil 
+  inc sil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc sil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc dil
+  plot_pixel byte[curr_piece], dil, sil 
+  dec dil
+  sub sil, 0x2
+  jmp .exit_checks
+  .j_piece:
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc sil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc sil
+  plot_pixel 0x0, dil, sil ; clear prev
+  dec dil
+  plot_pixel 0x0, dil, sil ; clear prev
+  inc dil
+  sub sil, 0x1
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
+  plot_pixel byte[curr_piece], dil, sil 
+  inc sil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc sil
+  plot_pixel byte[curr_piece], dil, sil 
+  dec dil
+  plot_pixel byte[curr_piece], dil, sil 
+  inc dil
+  sub sil, 0x2
 
   .exit_checks:
   mov byte[curr_piece + 1], dil
@@ -123,6 +225,20 @@ move_piece:
   .exit:
   inc r10
   mov qword[timer], r10
+
+  mov rdi, KEY_LEFT
+  call IsKeyPressed
+  test rax, rax
+  jz .check_right_key
+  sub byte[piece_movement], 0x1
+  .check_right_key:
+  mov rdi, KEY_RIGHT
+  call IsKeyPressed
+  test rax, rax
+  jz .exit_key_checks
+  add byte[piece_movement], 0x1
+  .exit_key_checks:
+
   ret
 
 create_bag:
@@ -133,25 +249,23 @@ create_bag:
     
     ; int random = rand() % (7 - i);
     call rand
+    .after_rand:
     mov r9, 0x7
     sub r9, r8
     xor rdx, rdx
     div r9
     mov rax, rdx ; random = rax
-
     ; bag[i] = piece_list[random]
-    mov al, byte[piece_list + rax]
-    mov byte[bag + r8], al
+    mov bl, byte[piece_list + rax]
+    mov byte[bag + r8], bl
 
-    ; int temp = piece_list[random]
-    mov r9b, byte[piece_list + rax]
+    ; piece_list[random] = piece_list[6 - i];
     mov rcx, 6
     sub rcx, r8
-    mov bl, byte[piece_list + rcx]
-    ; piece_list[random] = piece_list[6 - i];
-    mov byte[piece_list + rax], bl
+    mov dl, byte[piece_list + rcx]
+    mov byte[piece_list + rax], dl
     ; piece_list[6 - i] = temp;
-    mov byte[piece_list + rcx], al
+    mov byte[piece_list + rcx], bl
 
     inc r8
     jmp .loop
@@ -180,9 +294,10 @@ pull_from_bag:
 
 section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db I_PIECE, 0x0, 0x3, 0x0
+curr_piece db Z_PIECE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
-bag times(7) db 0x1
+piece_movement db 0x0
+bag db 0x1, 0x2, 0x3, 0x3, 0x2, 0x1, 0x1
 timer dq 0x0
 
 section .rodata
