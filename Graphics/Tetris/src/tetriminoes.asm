@@ -33,37 +33,45 @@ extern GetFrameTime
   mov byte[board + rax + rbx], r8b
 %endmacro
 
-%macro  plot_pixel_direction 1-* 
+%macro  plot_piece 1-* 
+  %assign x 0
+  %assign y 0
   %rep  %0 
-    %if %1 = UP
+    %if %1 & UP
       sub sil, 0x1
+      %assign y y-1
     %endif
-    %if %1 = DOWN
+    %if %1 & DOWN
       add sil, 0x1
+      %assign y y+1
     %endif
-    %if %1 = LEFT
+    %if %1 & LEFT
       sub dil, 0x1
+      %assign x x-1
     %endif
-    %if %1 = RIGHT
+    %if %1 & RIGHT
       add dil, 0x1
+      %assign x x+1
     %endif
+    plot_pixel r8b, dil, sil
   %rotate 1 
   %endrep 
-  plot_pixel r8b, dil, sil
+  sub dil, x
+  sub sil, y
 %endmacro
 
 %macro compare_under_pixel 1-* 
   %rep  %0 
-    %if %1 = UP
+    %if %1 & UP
       dec sil
     %endif
-    %if %1 = DOWN
+    %if %1 & DOWN
       inc sil
     %endif
-    %if %1 = LEFT
+    %if %1 & LEFT
       dec dil
     %endif
-    %if %1 = RIGHT
+    %if %1 & RIGHT
       inc dil
     %endif
   %rotate 1 
@@ -100,11 +108,25 @@ move_piece:
   xor rsi, rsi
   mov dil, byte[curr_piece + 1] ; X_POS
   mov sil, byte[curr_piece + 2] ; Y_POS
-
-
+  
+  .clear_piece:
   mov r8b, 0x0 ; clear prev
   cmp byte[curr_piece], I_PIECE
-  jne .check_o_piece
+  je .clear_i_piece
+  cmp byte[curr_piece], O_PIECE
+  je .clear_o_piece
+  cmp byte[curr_piece], T_PIECE
+  je .clear_t_piece
+  cmp byte[curr_piece], S_PIECE
+  je .clear_s_piece
+  cmp byte[curr_piece], Z_PIECE
+  je .clear_z_piece
+  cmp byte[curr_piece], L_PIECE
+  je .clear_l_piece
+  cmp byte[curr_piece], J_PIECE
+  je .clear_j_piece
+
+  .clear_i_piece:
   cmp sil, 19
   jge .reset
   compare_under_pixel NONE
@@ -116,24 +138,10 @@ move_piece:
   compare_under_pixel RIGHT
   jnz .reset
   sub dil, 0x3
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction RIGHT
-  plot_pixel_direction RIGHT
-  sub dil, 0x3
-  inc sil
-  mov r8b, byte[curr_piece]
-  add dil, byte[piece_movement]
-  mov byte[piece_movement], 0x0
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction RIGHT
-  plot_pixel_direction RIGHT
-  sub dil, 0x3
-  jmp .exit_checks
-  .check_o_piece:
-  cmp byte[curr_piece], O_PIECE
-  jne .check_t_piece
+  plot_piece NONE, RIGHT, RIGHT, RIGHT
+  jmp .exit_clears
+
+  .clear_o_piece:
   cmp sil, 18
   jge .reset
   inc sil
@@ -143,22 +151,10 @@ move_piece:
   jnz .reset
   dec dil
   dec sil
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction DOWN
-  plot_pixel_direction LEFT
-  add dil, byte[piece_movement]
-  mov byte[piece_movement], 0x0
-  mov r8b, byte[curr_piece]
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction DOWN
-  plot_pixel_direction LEFT
-  dec sil ; So we don't go too far
-  jmp .exit_checks
-  .check_t_piece:
-  cmp byte[curr_piece], T_PIECE
-  jne .check_s_piece
+  plot_piece NONE, RIGHT, DOWN, LEFT
+  jmp .exit_clears
+
+  .clear_t_piece:
   cmp sil, 18
   jge .reset
   compare_under_pixel NONE
@@ -168,24 +164,10 @@ move_piece:
   compare_under_pixel UP, RIGHT
   jnz .reset
   sub dil, 0x2
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction RIGHT
-  plot_pixel_direction LEFT, DOWN
-  dec dil
-  add dil, byte[piece_movement]
-  mov byte[piece_movement], 0x0
-  mov r8b, byte[curr_piece]
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction RIGHT
-  plot_pixel_direction LEFT, DOWN
-  dec dil
-  dec sil
-  jmp .exit_checks
-  .check_s_piece:
-  cmp byte[curr_piece], S_PIECE
-  jne .check_z_piece
+  plot_piece NONE, RIGHT, RIGHT, LEFT + DOWN
+  jmp .exit_clears
+
+  .clear_s_piece:
   cmp sil, 18
   jge .reset
   compare_under_pixel RIGHT
@@ -196,24 +178,10 @@ move_piece:
   jnz .reset
   inc dil
   dec sil
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction LEFT, DOWN
-  plot_pixel_direction LEFT
-  inc dil
-  add dil, byte[piece_movement]
-  mov byte[piece_movement], 0x0
-  mov r8b, byte[curr_piece]
-  plot_pixel_direction NONE
-  plot_pixel_direction RIGHT
-  plot_pixel_direction LEFT, DOWN
-  plot_pixel_direction LEFT
-  inc dil
-  dec sil
-  jmp .exit_checks
-  .check_z_piece:
-  cmp byte[curr_piece], Z_PIECE
-  jne .check_l_piece
+  plot_piece NONE, RIGHT, LEFT + DOWN, LEFT
+  jmp .exit_clears
+
+  .clear_z_piece:
   cmp sil, 18
   jge .reset
   compare_under_pixel LEFT
@@ -224,84 +192,82 @@ move_piece:
   jnz .reset
   dec dil
   dec sil
-  plot_pixel_direction NONE
-  plot_pixel_direction LEFT
-  plot_pixel_direction RIGHT, DOWN
-  plot_pixel_direction RIGHT
-  dec dil
-  add dil, byte[piece_movement]
-  mov byte[piece_movement], 0x0
-  mov r8b, byte[curr_piece]
-  plot_pixel_direction NONE
-  plot_pixel_direction LEFT
-  plot_pixel_direction RIGHT, DOWN
-  plot_pixel_direction RIGHT
-  dec dil
-  dec sil
-  jmp .exit_checks
-  .check_l_piece:
-  cmp byte[curr_piece], L_PIECE
-  jne .j_piece
-  cmp sil, 17
-  jge .reset
-  compare_under_pixel DOWN, DOWN
-  jnz .reset
-  compare_under_pixel LEFT
-  jnz .reset
-  sub sil, 0x2
-  inc dil
-  plot_pixel_direction LEFT
-  plot_pixel_direction DOWN
-  plot_pixel_direction DOWN
-  plot_pixel_direction RIGHT
-  sub sil, 0x1
-  add dil, byte[piece_movement]
-  mov r9b, 0x9
-  cmp dil, 9
-  cmova di, r9w
-  mov r9b, 0x1
-  cmp dil, 0x1
-  cmovb di, r9w
-  mov byte[piece_movement], 0x0
-  mov r8b, byte[curr_piece]
-  plot_pixel_direction LEFT
-  plot_pixel_direction DOWN
-  plot_pixel_direction DOWN
-  plot_pixel_direction RIGHT
-  sub sil, 0x2
-  jmp .exit_checks
-  .j_piece:
-  cmp sil, 17
-  jge .reset
-  compare_under_pixel DOWN, DOWN
-  jnz .reset
-  compare_under_pixel LEFT
-  jnz .reset
-  sub sil, 0x2
-  inc dil
-  plot_pixel_direction NONE
-  plot_pixel_direction DOWN
-  plot_pixel_direction DOWN
-  plot_pixel_direction LEFT
-  inc dil
-  sub sil, 0x1
-  add dil, byte[piece_movement]
-  mov r9b, 0x9
-  cmp dil, 9
-  cmova di, r9w
-  mov r9b, 0x1
-  cmp dil, 1
-  cmovb di, r9w
-  mov byte[piece_movement], 0x0
-  mov r8b, byte[curr_piece]
-  plot_pixel_direction NONE
-  plot_pixel_direction DOWN
-  plot_pixel_direction DOWN
-  plot_pixel_direction LEFT
-  inc dil
-  sub sil, 0x2
+  plot_piece NONE, LEFT, RIGHT + DOWN, RIGHT
+  jmp .exit_clears
 
-  .exit_checks:
+  .clear_l_piece:
+  cmp sil, 17
+  jge .reset
+  compare_under_pixel DOWN, DOWN
+  jnz .reset
+  compare_under_pixel LEFT
+  jnz .reset
+  sub sil, 0x2
+  inc dil
+  plot_piece LEFT, DOWN, DOWN, RIGHT
+  jmp .exit_clears
+
+  .clear_j_piece:
+  compare_under_pixel DOWN, DOWN
+  jnz .reset
+  compare_under_pixel LEFT
+  jnz .reset
+  sub sil, 0x2
+  inc dil
+  plot_piece NONE, DOWN, DOWN, LEFT
+  jmp .exit_clears
+
+  .exit_clears:
+  inc sil
+  mov r8b, byte[curr_piece]
+  add dil, byte[piece_movement]
+  mov byte[piece_movement], 0x0
+
+  .draw_piece:
+  cmp byte[curr_piece], I_PIECE
+  je .draw_i_piece
+  cmp byte[curr_piece], O_PIECE
+  je .draw_o_piece
+  cmp byte[curr_piece], T_PIECE
+  je .draw_t_piece
+  cmp byte[curr_piece], S_PIECE
+  je .draw_s_piece
+  cmp byte[curr_piece], Z_PIECE
+  je .draw_z_piece
+  cmp byte[curr_piece], L_PIECE
+  je .draw_l_piece
+  cmp byte[curr_piece], J_PIECE
+  je .draw_j_piece
+
+  .draw_i_piece:
+  plot_piece NONE, RIGHT, RIGHT, RIGHT
+  jmp .exit_draws
+
+  .draw_o_piece:
+  plot_piece NONE, RIGHT, DOWN, LEFT
+  jmp .exit_draws
+
+  .draw_t_piece:
+  plot_piece NONE, RIGHT, RIGHT, LEFT + DOWN
+  jmp .exit_draws
+
+  .draw_s_piece:
+  plot_piece NONE, RIGHT, LEFT + DOWN, LEFT
+  jmp .exit_draws
+
+  .draw_z_piece:
+  plot_piece NONE, LEFT, RIGHT + DOWN, RIGHT
+  jmp .exit_draws
+
+  .draw_l_piece:
+  plot_piece LEFT, DOWN, DOWN, RIGHT
+  jmp .exit_draws
+
+  .draw_j_piece:
+  plot_piece NONE, DOWN, DOWN, LEFT
+  jmp .exit_draws
+
+  .exit_draws:
   mov byte[curr_piece + 1], dil
   mov byte[curr_piece + 2], sil
   jmp .exit
@@ -383,7 +349,7 @@ pull_from_bag:
 
 section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db L_PIECE, 0x3, 0x0, 0x0
+curr_piece db 0x0, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 piece_movement db 0x0
 bag times(7) db 0x0
