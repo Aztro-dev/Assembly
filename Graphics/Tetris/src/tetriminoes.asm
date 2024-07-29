@@ -33,7 +33,7 @@ extern GetFrameTime
   mov byte[board + rax + rbx], r8b
 %endmacro
 
-%macro  plot_piece 1-* 
+%macro plot_piece 1-* 
   %assign x 0
   %assign y 0
   %rep  %0 
@@ -58,6 +58,45 @@ extern GetFrameTime
   %endrep 
   sub dil, x
   sub sil, y
+%endmacro
+
+%macro test_pixels 1-*
+  xor rbx, rbx
+  mov rcx, 0x1
+  %assign x 0
+  %assign y 0
+  %rep  %0 
+    %if %1 & UP
+      dec sil
+      %assign y y-1
+    %endif
+    %if %1 & DOWN
+      inc sil
+      %assign y y+1
+    %endif
+    %if %1 & LEFT
+      dec dil
+      %assign x x-1
+    %endif
+    %if %1 & RIGHT
+      inc dil
+      %assign x x+1
+    %endif
+    xor rax, rax
+    inc sil
+    mov al, sil ; POS_Y
+    mov r9, 10 ; Offset
+    mul r9
+    dec rsi
+
+    mov al, byte[board + rax + rdi]
+    test al, al
+    cmovnz rbx, rcx
+  %rotate 1 
+  %endrep 
+  sub dil, x
+  sub sil, y
+  test rbx, rbx
 %endmacro
 
 %macro compare_under_pixel 1-* 
@@ -129,98 +168,143 @@ move_piece:
   .clear_i_piece:
   cmp sil, 19
   jge .reset
-  compare_under_pixel NONE
+  test_pixels NONE, RIGHT, RIGHT, RIGHT
   jnz .reset
-  compare_under_pixel RIGHT
-  jnz .reset
-  compare_under_pixel RIGHT
-  jnz .reset
-  compare_under_pixel RIGHT
-  jnz .reset
-  sub dil, 0x3
   plot_piece NONE, RIGHT, RIGHT, RIGHT
   jmp .exit_clears
 
   .clear_o_piece:
   cmp sil, 18
   jge .reset
-  inc sil
-  compare_under_pixel NONE
+  test_pixels DOWN, RIGHT
   jnz .reset
-  compare_under_pixel RIGHT
-  jnz .reset
-  dec dil
-  dec sil
   plot_piece NONE, RIGHT, DOWN, LEFT
   jmp .exit_clears
 
   .clear_t_piece:
   cmp sil, 18
   jge .reset
-  compare_under_pixel NONE
+  test_pixels NONE, DOWN + RIGHT, UP + RIGHT
   jnz .reset
-  compare_under_pixel DOWN, RIGHT
-  jnz .reset
-  compare_under_pixel UP, RIGHT
-  jnz .reset
-  sub dil, 0x2
   plot_piece NONE, RIGHT, RIGHT, LEFT + DOWN
   jmp .exit_clears
 
   .clear_s_piece:
   cmp sil, 18
   jge .reset
-  compare_under_pixel RIGHT
+  test_pixels RIGHT, LEFT + DOWN, LEFT
   jnz .reset
-  compare_under_pixel LEFT, DOWN
-  jnz .reset
-  compare_under_pixel LEFT
-  jnz .reset
-  inc dil
-  dec sil
   plot_piece NONE, RIGHT, LEFT + DOWN, LEFT
   jmp .exit_clears
 
   .clear_z_piece:
   cmp sil, 18
   jge .reset
-  compare_under_pixel LEFT
+  test_pixels LEFT, RIGHT + DOWN, RIGHT
   jnz .reset
-  compare_under_pixel RIGHT, DOWN
-  jnz .reset
-  compare_under_pixel RIGHT
-  jnz .reset
-  dec dil
-  dec sil
   plot_piece NONE, LEFT, RIGHT + DOWN, RIGHT
   jmp .exit_clears
 
   .clear_l_piece:
-  cmp sil, 17
+  cmp sil, 19
   jge .reset
-  compare_under_pixel DOWN, DOWN
+  test_pixels NONE, LEFT
   jnz .reset
-  compare_under_pixel LEFT
-  jnz .reset
-  sub sil, 0x2
-  inc dil
-  plot_piece LEFT, DOWN, DOWN, RIGHT
+  plot_piece NONE, LEFT, UP, UP
   jmp .exit_clears
 
   .clear_j_piece:
-  compare_under_pixel DOWN, DOWN
+  cmp sil, 19
+  jge .reset
+  test_pixels NONE, RIGHT
   jnz .reset
-  compare_under_pixel LEFT
-  jnz .reset
-  sub sil, 0x2
-  inc dil
-  plot_piece NONE, DOWN, DOWN, LEFT
+  plot_piece NONE, RIGHT, UP, UP
   jmp .exit_clears
 
   .exit_clears:
   inc sil
   mov r8b, byte[curr_piece]
+
+  .move_piece:
   add dil, byte[piece_movement]
+  cmp byte[curr_piece], I_PIECE
+  je .move_i_piece
+  cmp byte[curr_piece], O_PIECE
+  je .move_o_piece
+  cmp byte[curr_piece], T_PIECE
+  je .move_t_piece
+  cmp byte[curr_piece], S_PIECE
+  je .move_s_piece
+  ;cmp byte[curr_piece], Z_PIECE
+  ;je .move_z_piece
+  ;cmp byte[curr_piece], L_PIECE
+  ;je .move_l_piece
+  ;cmp byte[curr_piece], J_PIECE
+  ;je .move_j_piece
+  jmp .exit_movements
+
+  .move_i_piece:
+  cmp dil, 10 - 3
+  jge .undo_move
+  cmp dil, -1
+  jle .undo_move
+  test_pixels NONE
+  jnz .undo_move
+  add dil, 0x2
+  test_pixels RIGHT
+  sub dil, 0x2
+  test rbx, rbx
+  jnz .undo_move
+  jmp .exit_movements
+
+  .move_o_piece:
+  cmp dil, 10 - 1
+  jge .undo_move
+  cmp dil, -1
+  jle .undo_move
+  test_pixels NONE, DOWN
+  jnz .undo_move
+  test_pixels RIGHT, DOWN
+  jnz .undo_move
+  jmp .exit_movements
+
+  .move_t_piece:
+  cmp dil, 10 - 2
+  jge .undo_move
+  cmp dil, -1
+  jle .undo_move
+  test_pixels NONE, DOWN + RIGHT
+  jnz .undo_move
+  test_pixels RIGHT, DOWN + LEFT
+  jnz .undo_move
+  jmp .exit_movements
+
+  .move_s_piece:
+  cmp dil, 10 - 1
+  jge .undo_move
+  cmp dil, -1
+  jle .undo_move
+  test_pixels NONE, DOWN + RIGHT
+  jnz .undo_move
+  test_pixels RIGHT, DOWN + LEFT
+  jnz .undo_move
+  jmp .exit_movements
+
+  .move_z_piece:
+  cmp dil, 10 - 1
+  jge .undo_move
+  cmp dil, -1
+  jle .undo_move
+  test_pixels NONE, DOWN + LEFT
+  jnz .undo_move
+  test_pixels LEFT, DOWN + RIGHT
+  jnz .undo_move
+  jmp .exit_movements
+
+  .undo_move:
+  sub dil, byte[piece_movement]
+
+  .exit_movements:
   mov byte[piece_movement], 0x0
 
   .draw_piece:
@@ -260,11 +344,11 @@ move_piece:
   jmp .exit_draws
 
   .draw_l_piece:
-  plot_piece LEFT, DOWN, DOWN, RIGHT
+  plot_piece NONE, LEFT, UP, UP
   jmp .exit_draws
 
   .draw_j_piece:
-  plot_piece NONE, DOWN, DOWN, LEFT
+  plot_piece NONE, RIGHT, UP, UP
   jmp .exit_draws
 
   .exit_draws:
@@ -349,7 +433,7 @@ pull_from_bag:
 
 section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db 0x0, 0x3, 0x0, 0x0
+curr_piece db S_PIECE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 piece_movement db 0x0
 bag times(7) db 0x0
