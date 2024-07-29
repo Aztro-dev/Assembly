@@ -52,6 +52,37 @@ extern GetFrameTime
   plot_pixel r8b, dil, sil
 %endmacro
 
+%macro compare_under_pixel 1-* 
+  %rep  %0 
+    %if %1 = UP
+      dec sil
+    %endif
+    %if %1 = DOWN
+      inc sil
+    %endif
+    %if %1 = LEFT
+      dec dil
+    %endif
+    %if %1 = RIGHT
+      inc dil
+    %endif
+  %rotate 1 
+  %endrep 
+  xor rax, rax
+  inc sil
+  mov al, sil ; POS_Y
+  mov r9, 10 ; Offset
+  mul r9
+  mov r9, rax
+  dec rsi
+
+  xor r10, r10
+  mov r10b, dil
+
+  mov al, byte[board + r9 + r10]
+  test al, al
+%endmacro
+
 section .text
 global move_piece
 move_piece:
@@ -76,6 +107,15 @@ move_piece:
   jne .check_o_piece
   cmp sil, 19
   jge .reset
+  compare_under_pixel NONE
+  jnz .reset
+  compare_under_pixel RIGHT
+  jnz .reset
+  compare_under_pixel RIGHT
+  jnz .reset
+  compare_under_pixel RIGHT
+  jnz .reset
+  sub dil, 0x3
   plot_pixel_direction NONE
   plot_pixel_direction RIGHT
   plot_pixel_direction RIGHT
@@ -96,6 +136,13 @@ move_piece:
   jne .check_t_piece
   cmp sil, 18
   jge .reset
+  inc sil
+  compare_under_pixel NONE
+  jnz .reset
+  compare_under_pixel RIGHT
+  jnz .reset
+  dec dil
+  dec sil
   plot_pixel_direction NONE
   plot_pixel_direction RIGHT
   plot_pixel_direction DOWN
@@ -114,6 +161,13 @@ move_piece:
   jne .check_s_piece
   cmp sil, 18
   jge .reset
+  compare_under_pixel NONE
+  jnz .reset
+  compare_under_pixel DOWN, RIGHT
+  jnz .reset
+  compare_under_pixel UP, RIGHT
+  jnz .reset
+  sub dil, 0x2
   plot_pixel_direction NONE
   plot_pixel_direction RIGHT
   plot_pixel_direction RIGHT
@@ -134,6 +188,14 @@ move_piece:
   jne .check_z_piece
   cmp sil, 18
   jge .reset
+  compare_under_pixel RIGHT
+  jnz .reset
+  compare_under_pixel LEFT, DOWN
+  jnz .reset
+  compare_under_pixel LEFT
+  jnz .reset
+  inc dil
+  dec sil
   plot_pixel_direction NONE
   plot_pixel_direction RIGHT
   plot_pixel_direction LEFT, DOWN
@@ -154,6 +216,14 @@ move_piece:
   jne .check_l_piece
   cmp sil, 18
   jge .reset
+  compare_under_pixel LEFT
+  jnz .reset
+  compare_under_pixel RIGHT, DOWN
+  jnz .reset
+  compare_under_pixel RIGHT
+  jnz .reset
+  dec dil
+  dec sil
   plot_pixel_direction NONE
   plot_pixel_direction LEFT
   plot_pixel_direction RIGHT, DOWN
@@ -174,6 +244,12 @@ move_piece:
   jne .j_piece
   cmp sil, 17
   jge .reset
+  compare_under_pixel DOWN, DOWN
+  jnz .reset
+  compare_under_pixel LEFT
+  jnz .reset
+  sub sil, 0x2
+  inc dil
   plot_pixel_direction LEFT
   plot_pixel_direction DOWN
   plot_pixel_direction DOWN
@@ -197,6 +273,12 @@ move_piece:
   .j_piece:
   cmp sil, 17
   jge .reset
+  compare_under_pixel DOWN, DOWN
+  jnz .reset
+  compare_under_pixel LEFT
+  jnz .reset
+  sub sil, 0x2
+  inc dil
   plot_pixel_direction NONE
   plot_pixel_direction DOWN
   plot_pixel_direction DOWN
