@@ -13,17 +13,25 @@
 %define DARK_BLUE 0xFFFF0000
 %define ORANGE 0xFF007FFF
 
+%define KEY_BACKSPACE 259
+
 %include "src/utils.asm"
 %include "src/tetriminoes.asm"
 
 extern DrawRectangle
 extern DrawRectangleLines
 extern DrawRectangleLinesEx
+extern IsKeyDown
 
 section .text
 global run_game
 run_game:
+  mov rdi, KEY_BACKSPACE
+  call IsKeyDown
+  test rax, 0x1
+  jnz .skip
   call move_piece
+  .skip:
   ret
   
 global draw_board
