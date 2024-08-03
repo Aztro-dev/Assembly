@@ -232,19 +232,19 @@ move_piece:
   jmp .exit_clears
 
   .clear_s_piece:
-  cmp sil, 18
+  cmp sil, 19
   jge .reset
-  test_pixels RIGHT, LEFT + DOWN, LEFT
+  test_pixels NONE, RIGHT, UP + RIGHT
   jnz .reset
-  plot_piece NONE, RIGHT, LEFT + DOWN, LEFT
+  plot_piece NONE, RIGHT, UP, RIGHT
   jmp .exit_clears
 
   .clear_z_piece:
-  cmp sil, 18
+  cmp sil, 19
   jge .reset
-  test_pixels LEFT, RIGHT + DOWN, RIGHT
+  test_pixels NONE, DOWN + RIGHT, RIGHT
   jnz .reset
-  plot_piece NONE, LEFT, RIGHT + DOWN, RIGHT
+  plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
   jmp .exit_clears
 
   .clear_l_piece:
@@ -327,9 +327,9 @@ move_piece:
   jge .undo_move
   cmp dil, -1
   jle .undo_move
-  test_pixels UP, DOWN + LEFT
-  jnz .undo_move
   test_pixels NONE, UP + RIGHT
+  jnz .undo_move
+  test_pixels RIGHT, UP + RIGHT
   jnz .undo_move
   jmp .exit_movements
 
@@ -338,9 +338,12 @@ move_piece:
   jge .undo_move
   cmp dil, 0
   jle .undo_move
-  test_pixels NONE, UP + LEFT
+  test_pixels UP + RIGHT, UP + LEFT
   jnz .undo_move
-  test_pixels UP, DOWN + RIGHT
+  inc dil
+  test_pixels UP + RIGHT, UP + LEFT
+  dec dil
+  test rbx, rbx
   jnz .undo_move
   jmp .exit_movements
 
@@ -401,11 +404,11 @@ move_piece:
   jmp .exit_draws
 
   .draw_s_piece:
-  plot_piece NONE, RIGHT, LEFT + DOWN, LEFT
+  plot_piece NONE, RIGHT, UP, RIGHT
   jmp .exit_draws
 
   .draw_z_piece:
-  plot_piece NONE, LEFT, RIGHT + DOWN, RIGHT
+  plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
   jmp .exit_draws
 
   .draw_l_piece:
@@ -498,7 +501,7 @@ pull_from_bag:
 
 section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db S_PIECE, 0x3, 0x0, 0x0
+curr_piece db L_PIECE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 piece_movement db 0x0
 bag times(7) db 0x0
