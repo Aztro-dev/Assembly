@@ -242,7 +242,7 @@ move_piece:
   .clear_z_piece:
   cmp sil, 19
   jge .reset
-  test_pixels NONE, DOWN + RIGHT, RIGHT
+  test_pixels UP, DOWN + RIGHT, RIGHT
   jnz .reset
   plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
   jmp .exit_clears
@@ -250,17 +250,17 @@ move_piece:
   .clear_l_piece:
   cmp sil, 19
   jge .reset
-  test_pixels NONE, LEFT
+  test_pixels DOWN, RIGHT, RIGHT
   jnz .reset
-  plot_piece NONE, LEFT, UP, UP
+  plot_piece NONE, DOWN, RIGHT, RIGHT
   jmp .exit_clears
 
   .clear_j_piece:
   cmp sil, 19
   jge .reset
-  test_pixels NONE, RIGHT
+  test_pixels DOWN, RIGHT, RIGHT
   jnz .reset
-  plot_piece NONE, RIGHT, UP, UP
+  plot_piece DOWN, RIGHT, RIGHT, UP
   jmp .exit_clears
 
   .exit_clears:
@@ -323,7 +323,7 @@ move_piece:
   jmp .exit_movements
 
   .move_s_piece:
-  cmp dil, 10 - 1
+  cmp dil, 10 - 2
   jge .undo_move
   cmp dil, -1
   jle .undo_move
@@ -334,9 +334,9 @@ move_piece:
   jmp .exit_movements
 
   .move_z_piece:
-  cmp dil, 10 - 1
+  cmp dil, 10 - 2
   jge .undo_move
-  cmp dil, 0
+  cmp dil, -1
   jle .undo_move
   test_pixels UP + RIGHT, UP + LEFT
   jnz .undo_move
@@ -348,24 +348,31 @@ move_piece:
   jmp .exit_movements
 
   .move_l_piece:
-  cmp dil, 10
+  cmp dil, 10 -2
   jge .undo_move
-  cmp dil, 0
+  cmp dil, -1
   jle .undo_move
-  test_pixels LEFT + UP, UP, UP
+  test_pixels UP, DOWN
   jnz .undo_move
-  test_pixels UP, UP + LEFT, UP
+  ; "DOWN + RIGHT" is a pixel inside the tetrimino.
+  ; It's just there so that we can reach the other end of the tetrimino.
+  test_pixels UP, DOWN + RIGHT, RIGHT
   jnz .undo_move
   jmp .exit_movements
 
   .move_j_piece:
-  cmp dil, 10 - 1
+  cmp dil, 10 - 2
   jge .undo_move
   cmp dil, -1
   jle .undo_move
-  test_pixels UP, UP + RIGHT, UP
+  ; "UP" and "RIGHT" are pixels inside the tetrimino.
+  ; They're just there so that we can reach the other end of the tetrimino.
+  test_pixels RIGHT, LEFT, RIGHT, UP + RIGHT 
   jnz .undo_move
-  test_pixels RIGHT + UP, UP, UP
+  add dil, 0x2
+  test_pixels NONE, UP
+  sub dil, 0x2
+  test rbx, rbx
   jnz .undo_move
   jmp .exit_movements
 
@@ -412,11 +419,11 @@ move_piece:
   jmp .exit_draws
 
   .draw_l_piece:
-  plot_piece NONE, LEFT, UP, UP
+  plot_piece NONE, DOWN, RIGHT, RIGHT
   jmp .exit_draws
 
   .draw_j_piece:
-  plot_piece NONE, RIGHT, UP, UP
+  plot_piece DOWN, RIGHT, RIGHT, UP
   jmp .exit_draws
 
   .exit_draws:
@@ -501,7 +508,7 @@ pull_from_bag:
 
 section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db L_PIECE, 0x3, 0x0, 0x0
+curr_piece db NONE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 piece_movement db 0x0
 bag times(7) db 0x0
