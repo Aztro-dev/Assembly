@@ -21,6 +21,13 @@ section .note.GNU-stack noalloc noexec nowrite progbits
   %endrep 
 %endmacro
 
+; Conditional Call (ccallcc)
+%macro ccall 2
+	j%-1 %%skip
+	call %2
+	%%skip:
+%endmacro
+
 section .text
 extern printf
 

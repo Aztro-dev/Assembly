@@ -181,9 +181,8 @@ move_piece:
   mov r10, 0x0
 
   cmp byte[curr_piece], 0x0
-  jne .skip_bag_pull
-  call pull_from_bag
-  .skip_bag_pull:
+  ; If there's no current piece, pull from the bag
+  ccall e, pull_from_bag
 
   xor rdi, rdi
   xor rsi, rsi
