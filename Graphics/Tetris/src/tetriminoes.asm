@@ -1,4 +1,6 @@
 %define SIMULATION_SPEED MAX_FPS / 7 ; 7 times per second
+
+%define KEY_SPACE 32
 %define KEY_RIGHT 262
 %define KEY_LEFT 263
 %define KEY_DOWN 264
@@ -178,6 +180,11 @@ extern GetFrameTime
 section .text
 global move_piece
 move_piece:
+  mov rdi, KEY_SPACE
+  call IsKeyPressed
+  test rax, 0x1
+  jnz .skip_time_check
+
   mov rdi, KEY_DOWN
   call IsKeyDown
 
@@ -205,6 +212,9 @@ move_piece:
   mov dil, byte[curr_piece + 1] ; X_POS
   mov sil, byte[curr_piece + 2] ; Y_POS
   
+  .drop_piece:
+  call drop_piece
+  push rax
   .clear_piece:
   mov r8b, 0x0 ; clear prev
   cmp byte[curr_piece], I_PIECE
@@ -223,63 +233,47 @@ move_piece:
   je .clear_j_piece
 
   .clear_i_piece:
-  cmp sil, 19
-  jge .reset
-  test_pixels NONE, RIGHT, RIGHT, RIGHT
-  jnz .reset
   plot_piece NONE, RIGHT, RIGHT, RIGHT
   jmp .exit_clears
 
   .clear_o_piece:
-  cmp sil, 18
-  jge .reset
-  test_pixels DOWN + RIGHT, RIGHT
-  jnz .reset
   plot_piece RIGHT, RIGHT, DOWN, LEFT
   jmp .exit_clears
 
   .clear_t_piece:
-  cmp sil, 19
-  jge .reset
-  test_pixels NONE, RIGHT, RIGHT
-  jnz .reset
   plot_piece NONE, RIGHT, RIGHT, LEFT + UP
   jmp .exit_clears
 
   .clear_s_piece:
-  cmp sil, 19
-  jge .reset
-  test_pixels NONE, RIGHT, UP + RIGHT
-  jnz .reset
   plot_piece NONE, RIGHT, UP, RIGHT
   jmp .exit_clears
 
   .clear_z_piece:
-  cmp sil, 19
-  jge .reset
-  test_pixels UP, DOWN + RIGHT, RIGHT
-  jnz .reset
   plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
   jmp .exit_clears
 
   .clear_l_piece:
-  cmp sil, 19
-  jge .reset
-  test_pixels DOWN, RIGHT, RIGHT
-  jnz .reset
   plot_piece NONE, DOWN, RIGHT, RIGHT
   jmp .exit_clears
 
   .clear_j_piece:
-  cmp sil, 19
-  jge .reset
-  test_pixels DOWN, RIGHT, RIGHT
-  jnz .reset
   plot_piece DOWN, RIGHT, RIGHT, UP
   jmp .exit_clears
 
   .exit_clears:
+  pop rax
   inc sil
+
+  test rax, 0x1
+  jnz .skip_hard_drop_check
+  push rdi
+  mov rdi, KEY_SPACE
+  call IsKeyPressed
+  pop rdi
+  test rax, 0x1
+  jnz .drop_piece
+  .skip_hard_drop_check:
+  push rax
   mov r8b, byte[curr_piece]
 
   .move_piece:
@@ -444,6 +438,9 @@ move_piece:
   .exit_draws:
   mov byte[curr_piece + 1], dil
   mov byte[curr_piece + 2], sil
+  pop rax
+  test rax, 0x1
+  jnz .reset
   jmp .exit
 
   .reset:
@@ -468,6 +465,80 @@ move_piece:
   mov byte[piece_movement], 0x1
   .exit_key_checks:
 
+  ret
+
+drop_piece:
+  cmp byte[curr_piece], I_PIECE
+  je .drop_i_piece
+  cmp byte[curr_piece], O_PIECE
+  je .drop_o_piece
+  cmp byte[curr_piece], T_PIECE
+  je .drop_t_piece
+  cmp byte[curr_piece], S_PIECE
+  je .drop_s_piece
+  cmp byte[curr_piece], Z_PIECE
+  je .drop_z_piece
+  cmp byte[curr_piece], L_PIECE
+  je .drop_l_piece
+  cmp byte[curr_piece], J_PIECE
+  je .drop_j_piece
+
+  .drop_i_piece:
+  cmp sil, 19
+  jge .reset
+  test_pixels NONE, RIGHT, RIGHT, RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .drop_o_piece:
+  cmp sil, 18
+  jge .reset
+  test_pixels DOWN + RIGHT, RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .drop_t_piece:
+  cmp sil, 19
+  jge .reset
+  test_pixels NONE, RIGHT, RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .drop_s_piece:
+  cmp sil, 19
+  jge .reset
+  test_pixels NONE, RIGHT, UP + RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .drop_z_piece:
+  cmp sil, 19
+  jge .reset
+  test_pixels UP, DOWN + RIGHT, RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .drop_l_piece:
+  cmp sil, 19
+  jge .reset
+  test_pixels DOWN, RIGHT, RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .drop_j_piece:
+  cmp sil, 19
+  jge .reset
+  test_pixels DOWN, RIGHT, RIGHT
+  jnz .reset
+  jmp .exit_drops
+
+  .reset:
+  or rax, 0x1
+  dec sil
+  ret
+
+  .exit_drops:
+  xor rax, rax
   ret
 
 section .data
