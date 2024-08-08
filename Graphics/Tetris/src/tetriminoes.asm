@@ -16,6 +16,8 @@
 %define LEFT  0x4
 %define RIGHT 0x8
 
+%include "src/bag.asm"
+
 extern IsKeyPressed
 extern GetFrameTime
 
@@ -454,63 +456,6 @@ move_piece:
 
   ret
 
-create_bag:
-  xor r8, r8 ; iterator
-  .loop:
-    cmp r8, 7
-    jge .exit_loop
-    
-    ; int random = rand() % (7 - i);
-    call rand
-    .after_rand:
-    mov r9, 0x7
-    sub r9, r8
-    xor rdx, rdx
-    div r9
-    mov rax, rdx ; random = rax
-    ; bag[i] = piece_list[random]
-    mov bl, byte[piece_list + rax]
-    mov byte[bag + r8], bl
-
-    ; piece_list[random] = piece_list[6 - i];
-    mov rcx, 6
-    sub rcx, r8
-    mov dl, byte[piece_list + rcx]
-    mov byte[piece_list + rax], dl
-    ; piece_list[6 - i] = temp;
-    mov byte[piece_list + rcx], bl
-
-    inc r8
-    jmp .loop
-  .exit_loop:
-  ret
-
-pull_from_bag:
-  cmp byte[bag + 0x6], 0x0
-  jne .skip_bag_reset
-  call create_bag
-  .skip_bag_reset:
-  
-  mov r9, 0x0
-  .next_bag_piece_loop:
-    cmp byte[bag + r9], 0x0
-    jne .exit_next_bag_piece_loop
-    inc r9
-    jmp .next_bag_piece_loop
-  .exit_next_bag_piece_loop:
-  mov al, byte[bag + r9]
-  mov byte[bag + r9], 0x0
-  mov byte[curr_piece], al
-  mov byte[curr_piece + 1], 0x3
-  mov byte[curr_piece + 2], 0x0
-  ret
-
 section .data
-; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db NONE, 0x3, 0x0, 0x0
-piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 piece_movement db 0x0
-bag times(7) db 0x0
 timer dq 0x0
-
-section .rodata

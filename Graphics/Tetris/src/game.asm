@@ -31,6 +31,7 @@ run_game:
   test rax, 0x1
   jnz .skip
   call move_piece
+  call draw_bag
   .skip:
   ret
   
