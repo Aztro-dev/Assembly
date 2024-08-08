@@ -38,16 +38,16 @@ draw_bag:
   je .draw_i_piece
   cmp al, O_PIECE
   je .draw_o_piece
-  ;cmp al, T_PIECE
-  ;je .draw_t_piece
-  ;cmp al, S_PIECE
-  ;je .draw_s_piece
-  ;cmp al, Z_PIECE
-  ;je .draw_z_piece
-  ;cmp al, L_PIECE
-  ;je .draw_l_piece
-  ;cmp al, J_PIECE
-  ;je .draw_j_piece
+  cmp al, T_PIECE
+  je .draw_t_piece
+  cmp al, S_PIECE
+  je .draw_s_piece
+  cmp al, Z_PIECE
+  je .draw_z_piece
+  cmp al, L_PIECE
+  je .draw_l_piece
+  cmp al, J_PIECE
+  je .draw_j_piece
   jmp .exit
 
   .draw_i_piece:
@@ -67,6 +67,87 @@ draw_bag:
   mov r8, YELLOW
   call DrawRectangle
   jmp .exit
+
+  .draw_t_piece:
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 3
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, PURPLE
+  call DrawRectangle
+
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5 + NEXT_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, PURPLE
+  call DrawRectangle
+  jmp .exit
+
+  .draw_s_piece:
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 2
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, GREEN
+  call DrawRectangle
+
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5 + NEXT_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 2
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, GREEN
+  call DrawRectangle
+  jmp .exit
+
+  .draw_z_piece:
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 2
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, RED
+  call DrawRectangle
+
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5 + NEXT_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 2
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, RED
+  call DrawRectangle
+  jmp .exit
+
+  .draw_l_piece:
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 3
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, DARK_BLUE
+  call DrawRectangle
+
+  mov rdi, 4 * SCREEN_WIDTH / 5 + NEXT_PIECE_CELL_SIZE / 5 + NEXT_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, DARK_BLUE
+  call DrawRectangle
+  jmp .exit
+
+  .draw_j_piece:
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE * 3
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, ORANGE
+  call DrawRectangle
+
+  mov rdi, 4 * SCREEN_WIDTH / 5 + 6 * NEXT_PIECE_CELL_SIZE / 5 + 2 * NEXT_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * NEXT_PIECE_CELL_SIZE + NEXT_PIECE_CELL_SIZE / 2
+  mov rdx, NEXT_PIECE_CELL_SIZE
+  mov rcx, NEXT_PIECE_CELL_SIZE
+  mov r8, ORANGE
+  call DrawRectangle
+  jmp .exit
+
 
   .exit:
   
@@ -127,7 +208,7 @@ section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
 curr_piece db NONE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
-bag times(7) db 0x0
+bag times(7) db NONE
 
 section .rodata
 next_piece_text db "NEXT", 0x0

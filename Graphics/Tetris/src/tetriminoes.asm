@@ -1,6 +1,7 @@
 %define SIMULATION_SPEED MAX_FPS / 7 ; 7 times per second
 %define KEY_RIGHT 262
 %define KEY_LEFT 263
+%define KEY_DOWN 264
 
 %define I_PIECE 0x1
 %define O_PIECE 0x2
@@ -177,9 +178,22 @@ extern GetFrameTime
 section .text
 global move_piece
 move_piece:
+  mov rdi, KEY_DOWN
+  call IsKeyDown
+
   mov r10, qword[timer]
+
+  test rax, 0x1
+  jz .normal_time
+  cmp r10, SIMULATION_SPEED / 4
+  jl .exit
+  jmp .skip_time_check
+
+  .normal_time:
   cmp r10, SIMULATION_SPEED
   jl .exit
+
+  .skip_time_check:
   mov r10, 0x0
 
   cmp byte[curr_piece], 0x0
