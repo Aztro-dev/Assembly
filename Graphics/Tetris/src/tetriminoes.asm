@@ -215,52 +215,11 @@ move_piece:
   .drop_piece:
   call drop_piece
   push rax
+
   .clear_piece:
   mov r8b, 0x0 ; clear prev
-  cmp byte[curr_piece], I_PIECE
-  je .clear_i_piece
-  cmp byte[curr_piece], O_PIECE
-  je .clear_o_piece
-  cmp byte[curr_piece], T_PIECE
-  je .clear_t_piece
-  cmp byte[curr_piece], S_PIECE
-  je .clear_s_piece
-  cmp byte[curr_piece], Z_PIECE
-  je .clear_z_piece
-  cmp byte[curr_piece], L_PIECE
-  je .clear_l_piece
-  cmp byte[curr_piece], J_PIECE
-  je .clear_j_piece
+  call draw_piece
 
-  .clear_i_piece:
-  plot_piece NONE, RIGHT, RIGHT, RIGHT
-  jmp .exit_clears
-
-  .clear_o_piece:
-  plot_piece RIGHT, RIGHT, DOWN, LEFT
-  jmp .exit_clears
-
-  .clear_t_piece:
-  plot_piece NONE, RIGHT, RIGHT, LEFT + UP
-  jmp .exit_clears
-
-  .clear_s_piece:
-  plot_piece NONE, RIGHT, UP, RIGHT
-  jmp .exit_clears
-
-  .clear_z_piece:
-  plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
-  jmp .exit_clears
-
-  .clear_l_piece:
-  plot_piece NONE, DOWN, RIGHT, RIGHT
-  jmp .exit_clears
-
-  .clear_j_piece:
-  plot_piece DOWN, RIGHT, RIGHT, UP
-  jmp .exit_clears
-
-  .exit_clears:
   pop rax
   inc sil
 
@@ -390,54 +349,13 @@ move_piece:
 
   .exit_movements:
   mov byte[piece_movement], 0x0
-
+  
   .draw_piece:
-  cmp byte[curr_piece], I_PIECE
-  je .draw_i_piece
-  cmp byte[curr_piece], O_PIECE
-  je .draw_o_piece
-  cmp byte[curr_piece], T_PIECE
-  je .draw_t_piece
-  cmp byte[curr_piece], S_PIECE
-  je .draw_s_piece
-  cmp byte[curr_piece], Z_PIECE
-  je .draw_z_piece
-  cmp byte[curr_piece], L_PIECE
-  je .draw_l_piece
-  cmp byte[curr_piece], J_PIECE
-  je .draw_j_piece
+  call draw_piece
 
-  .draw_i_piece:
-  plot_piece NONE, RIGHT, RIGHT, RIGHT
-  jmp .exit_draws
-
-  .draw_o_piece:
-  plot_piece RIGHT, RIGHT, DOWN, LEFT
-  jmp .exit_draws
-
-  .draw_t_piece:
-  plot_piece NONE, RIGHT, RIGHT, LEFT + UP
-  jmp .exit_draws
-
-  .draw_s_piece:
-  plot_piece NONE, RIGHT, UP, RIGHT
-  jmp .exit_draws
-
-  .draw_z_piece:
-  plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
-  jmp .exit_draws
-
-  .draw_l_piece:
-  plot_piece NONE, DOWN, RIGHT, RIGHT
-  jmp .exit_draws
-
-  .draw_j_piece:
-  plot_piece DOWN, RIGHT, RIGHT, UP
-  jmp .exit_draws
-
-  .exit_draws:
   mov byte[curr_piece + 1], dil
   mov byte[curr_piece + 2], sil
+
   pop rax
   test rax, 0x1
   jnz .reset
@@ -465,6 +383,53 @@ move_piece:
   mov byte[piece_movement], 0x1
   .exit_key_checks:
 
+  ret
+
+draw_piece:
+  cmp byte[curr_piece], I_PIECE
+  je .draw_i_piece
+  cmp byte[curr_piece], O_PIECE
+  je .draw_o_piece
+  cmp byte[curr_piece], T_PIECE
+  je .draw_t_piece
+  cmp byte[curr_piece], S_PIECE
+  je .draw_s_piece
+  cmp byte[curr_piece], Z_PIECE
+  je .draw_z_piece
+  cmp byte[curr_piece], L_PIECE
+  je .draw_l_piece
+  cmp byte[curr_piece], J_PIECE
+  je .draw_j_piece
+
+  .draw_i_piece:
+  plot_piece NONE, RIGHT, RIGHT, RIGHT
+  jmp .exit
+
+  .draw_o_piece:
+  plot_piece RIGHT, RIGHT, DOWN, LEFT
+  jmp .exit
+
+  .draw_t_piece:
+  plot_piece NONE, RIGHT, RIGHT, LEFT + UP
+  jmp .exit
+
+  .draw_s_piece:
+  plot_piece NONE, RIGHT, UP, RIGHT
+  jmp .exit
+
+  .draw_z_piece:
+  plot_piece RIGHT, RIGHT, UP + LEFT, LEFT
+  jmp .exit
+
+  .draw_l_piece:
+  plot_piece NONE, DOWN, RIGHT, RIGHT
+  jmp .exit
+
+  .draw_j_piece:
+  plot_piece DOWN, RIGHT, RIGHT, UP
+  jmp .exit
+
+  .exit:
   ret
 
 drop_piece:
