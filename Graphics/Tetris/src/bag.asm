@@ -1,9 +1,150 @@
 %define NEXT_PIECE_FONT_SIZE 32
 %define NEXT_PIECE_CELL_SIZE 18
+%define HOLD_PIECE_FONT_SIZE 32
+%define HOLD_PIECE_CELL_SIZE 18
 
 extern DrawText
 
 section .text
+
+draw_hold:
+  mov rdi, hold_piece_text
+  mov rsi, SCREEN_WIDTH / 10
+  mov rdx, SCREEN_HEIGHT / 7
+  mov rcx, HOLD_PIECE_FONT_SIZE
+  mov r8, WHITE
+  call DrawText
+
+  mov rdi, SCREEN_WIDTH / 10 
+  mov rsi, SCREEN_HEIGHT / 7 + 30
+  mov rdx, 100
+  mov rcx, 60
+  mov r8, WHITE
+  call DrawRectangleLines
+
+  cmp byte[bag + 0x6], 0x0
+  jne .skip_bag_reset
+  call create_bag
+  .skip_bag_reset:
+  
+  mov al, byte[hold]
+
+  cmp al, I_PIECE
+  je .draw_i_piece
+  cmp al, O_PIECE
+  je .draw_o_piece
+  cmp al, T_PIECE
+  je .draw_t_piece
+  cmp al, S_PIECE
+  je .draw_s_piece
+  cmp al, Z_PIECE
+  je .draw_z_piece
+  cmp al, L_PIECE
+  je .draw_l_piece
+  cmp al, J_PIECE
+  je .draw_j_piece
+  jmp .exit
+
+  .draw_i_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 4 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * HOLD_PIECE_CELL_SIZE
+  mov rdx, HOLD_PIECE_CELL_SIZE * 4
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, LIGHT_BLUE
+  call DrawRectangle
+  jmp .exit
+
+  .draw_o_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 9 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 9 * HOLD_PIECE_CELL_SIZE / 4
+  mov rdx, HOLD_PIECE_CELL_SIZE * 2
+  mov rcx, HOLD_PIECE_CELL_SIZE * 2
+  mov r8, YELLOW
+  call DrawRectangle
+  jmp .exit
+
+  .draw_t_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 3
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, PURPLE
+  call DrawRectangle
+
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5 + HOLD_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, PURPLE
+  call DrawRectangle
+  jmp .exit
+
+  .draw_s_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 2
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, GREEN
+  call DrawRectangle
+
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5 + HOLD_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 2
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, GREEN
+  call DrawRectangle
+  jmp .exit
+
+  .draw_z_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 2
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, RED
+  call DrawRectangle
+
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5 + HOLD_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 2
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, RED
+  call DrawRectangle
+  jmp .exit
+
+  .draw_l_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 3
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, DARK_BLUE
+  call DrawRectangle
+
+  mov rdi, SCREEN_WIDTH / 10 + HOLD_PIECE_CELL_SIZE / 5 + HOLD_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, DARK_BLUE
+  call DrawRectangle
+  jmp .exit
+
+  .draw_j_piece:
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5
+  mov rsi, SCREEN_HEIGHT / 7 + 3 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE * 3
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, ORANGE
+  call DrawRectangle
+
+  mov rdi, SCREEN_WIDTH / 10 + 6 * HOLD_PIECE_CELL_SIZE / 5 + 2 * HOLD_PIECE_CELL_SIZE
+  mov rsi, SCREEN_HEIGHT / 7 + 2 * HOLD_PIECE_CELL_SIZE + HOLD_PIECE_CELL_SIZE / 2
+  mov rdx, HOLD_PIECE_CELL_SIZE
+  mov rcx, HOLD_PIECE_CELL_SIZE
+  mov r8, ORANGE
+  call DrawRectangle
+  jmp .exit
+
+  .exit:
+  ret
 
 draw_bag:
   mov rdi, next_piece_text
@@ -207,6 +348,8 @@ section .data
 curr_piece db NONE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 bag times(7) db NONE
+hold db NONE
 
 section .rodata
 next_piece_text db "NEXT", 0x0
+hold_piece_text db "HOLD", 0x0

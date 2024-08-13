@@ -32,6 +32,7 @@ run_game:
   jnz .skip
   call move_piece
   call draw_bag
+  call draw_hold
   .skip:
   ret
   
