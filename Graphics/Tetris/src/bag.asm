@@ -148,9 +148,7 @@ draw_bag:
   call DrawRectangle
   jmp .exit
 
-
   .exit:
-  
   ret
 
 create_bag:
