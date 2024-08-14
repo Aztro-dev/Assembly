@@ -3,9 +3,56 @@
 %define HOLD_PIECE_FONT_SIZE 32
 %define HOLD_PIECE_CELL_SIZE 18
 
+%define KEY_C 67
+%define KEY_LEFT_SHIFT 340
+
 extern DrawText
+extern IsKeyPressed
 
 section .text
+
+handle_hold:
+  mov al, byte[can_hold]
+  test al, al
+  jz .exit
+
+  mov rdi, KEY_C
+  call IsKeyPressed
+  test rax, 0x1
+  jnz .skip_checks
+  mov rdi, KEY_LEFT_SHIFT
+  call IsKeyPressed
+  test rax, rax
+  jz .exit
+
+  .skip_checks:
+  xor rdi, rdi
+  xor rsi, rsi
+  mov dil, byte[curr_piece + 1] ; X_POS
+  mov sil, byte[curr_piece + 2] ; Y_POS
+
+  mov r8b, 0x0 ; clear
+  call draw_piece
+
+  mov byte[can_hold], 0x0
+
+  mov al, byte[hold]
+  cmp al, NONE
+  jne .swap_hold
+  mov al, byte[curr_piece]
+  mov byte[hold], al
+  call pull_from_bag
+
+  jmp .exit
+  .swap_hold:
+  mov bl, byte[curr_piece]
+  mov byte[hold], bl
+  mov byte[curr_piece], al
+  mov byte[curr_piece + 1], 0x3
+  mov byte[curr_piece + 2], 0x0
+  
+  .exit:
+  ret
 
 draw_hold:
   mov rdi, hold_piece_text
@@ -22,11 +69,6 @@ draw_hold:
   mov r8, WHITE
   call DrawRectangleLines
 
-  cmp byte[bag + 0x6], 0x0
-  jne .skip_bag_reset
-  call create_bag
-  .skip_bag_reset:
-  
   mov al, byte[hold]
 
   cmp al, I_PIECE
@@ -349,6 +391,7 @@ curr_piece db NONE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 bag times(7) db NONE
 hold db NONE
+can_hold db 0x1
 
 section .rodata
 next_piece_text db "NEXT", 0x0

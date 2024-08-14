@@ -237,19 +237,20 @@ move_piece:
 
   .move_piece:
   add dil, byte[piece_movement]
-  cmp byte[curr_piece], I_PIECE
+  mov al, byte[curr_piece]
+  cmp al, I_PIECE
   je .move_i_piece
-  cmp byte[curr_piece], O_PIECE
+  cmp al, O_PIECE
   je .move_o_piece
-  cmp byte[curr_piece], T_PIECE
+  cmp al, T_PIECE
   je .move_t_piece
-  cmp byte[curr_piece], S_PIECE
+  cmp al, S_PIECE
   je .move_s_piece
-  cmp byte[curr_piece], Z_PIECE
+  cmp al, Z_PIECE
   je .move_z_piece
-  cmp byte[curr_piece], L_PIECE
+  cmp al, L_PIECE
   je .move_l_piece
-  cmp byte[curr_piece], J_PIECE
+  cmp al, J_PIECE
   je .move_j_piece
   jmp .exit_movements
 
@@ -363,6 +364,7 @@ move_piece:
 
   .reset:
   call pull_from_bag
+  mov byte[can_hold], 0x1
   jmp .exit
 
   .exit:
@@ -386,19 +388,20 @@ move_piece:
   ret
 
 draw_piece:
-  cmp byte[curr_piece], I_PIECE
+  mov al, byte[curr_piece]
+  cmp al, I_PIECE
   je .draw_i_piece
-  cmp byte[curr_piece], O_PIECE
+  cmp al, O_PIECE
   je .draw_o_piece
-  cmp byte[curr_piece], T_PIECE
+  cmp al, T_PIECE
   je .draw_t_piece
-  cmp byte[curr_piece], S_PIECE
+  cmp al, S_PIECE
   je .draw_s_piece
-  cmp byte[curr_piece], Z_PIECE
+  cmp al, Z_PIECE
   je .draw_z_piece
-  cmp byte[curr_piece], L_PIECE
+  cmp al, L_PIECE
   je .draw_l_piece
-  cmp byte[curr_piece], J_PIECE
+  cmp al, J_PIECE
   je .draw_j_piece
 
   .draw_i_piece:
@@ -433,19 +436,20 @@ draw_piece:
   ret
 
 drop_piece:
-  cmp byte[curr_piece], I_PIECE
+  mov al, byte[curr_piece]
+  cmp al, I_PIECE
   je .drop_i_piece
-  cmp byte[curr_piece], O_PIECE
+  cmp al, O_PIECE
   je .drop_o_piece
-  cmp byte[curr_piece], T_PIECE
+  cmp al, T_PIECE
   je .drop_t_piece
-  cmp byte[curr_piece], S_PIECE
+  cmp al, S_PIECE
   je .drop_s_piece
-  cmp byte[curr_piece], Z_PIECE
+  cmp al, Z_PIECE
   je .drop_z_piece
-  cmp byte[curr_piece], L_PIECE
+  cmp al, L_PIECE
   je .drop_l_piece
-  cmp byte[curr_piece], J_PIECE
+  cmp al, J_PIECE
   je .drop_j_piece
 
   .drop_i_piece:
