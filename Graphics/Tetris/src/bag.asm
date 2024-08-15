@@ -50,6 +50,7 @@ handle_hold:
   mov byte[curr_piece], al
   mov byte[curr_piece + 1], 0x3
   mov byte[curr_piece + 2], 0x0
+  mov byte[curr_piece + 3], 0x0
   
   .exit:
   ret
@@ -383,6 +384,7 @@ pull_from_bag:
   mov byte[curr_piece], al
   mov byte[curr_piece + 1], 0x3
   mov byte[curr_piece + 2], 0x0
+  mov byte[curr_piece + 3], 0x0
   ret
 
 section .data

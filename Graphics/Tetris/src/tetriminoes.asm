@@ -4,6 +4,8 @@
 %define KEY_RIGHT 262
 %define KEY_LEFT 263
 %define KEY_DOWN 264
+%define KEY_X 88
+%define KEY_Z 90
 
 %define I_PIECE 0x1
 %define O_PIECE 0x2
@@ -178,6 +180,23 @@ extern GetFrameTime
 %endmacro
 
 section .text
+global rotate_piece
+rotate_piece:
+  .check_counter_clockwise:
+  mov rdi, KEY_Z
+  call IsKeyPressed
+  test rax, rax
+  jnz .check_clockwise
+  dec byte[curr_piece + 0x3]
+  .check_clockwise:
+  mov rdi, KEY_X
+  call IsKeyPressed
+  test rax, rax
+  jnz .exit
+  inc byte[curr_piece + 0x3]
+  .exit:
+  ret
+
 global move_piece
 move_piece:
   mov rdi, KEY_SPACE
