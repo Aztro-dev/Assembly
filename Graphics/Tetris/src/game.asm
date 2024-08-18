@@ -139,7 +139,7 @@ draw_board_lines:
 
 section .data
   ; Tetris board is 10 x 20 cells
-  board times (20) db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  board times (10 * 20) db 0x0
   temp times (4) dd 0x0
 section .rodata
   colors_array dq NO_COLOR, LIGHT_BLUE, YELLOW, PURPLE, GREEN, RED, DARK_BLUE, ORANGE

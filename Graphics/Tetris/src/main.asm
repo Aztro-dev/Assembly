@@ -17,7 +17,6 @@ _start:
 	mov  rdi, MAX_FPS
 	call SetTargetFPS
 	
-
 .draw_loop:
 	call WindowShouldClose
 	test rax, rax

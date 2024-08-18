@@ -79,6 +79,15 @@
       inc dil
       %assign x x+1
     %endif
+    cmp dil, 0x0
+    cmovl rbx, rcx
+
+    cmp dil, 10
+    cmovge rbx, rcx
+
+    cmp sil, 20
+    cmovge rbx, rcx
+
     xor rax, rax
     inc sil
     mov al, sil ; POS_Y
@@ -91,6 +100,7 @@
     cmovnz rbx, rcx
   %rotate 1 
   %endrep 
+  %%.exit:
   sub dil, x
   sub sil, y
   test rbx, rbx
@@ -241,14 +251,14 @@ move_piece:
   xor rsi, rsi
   mov dil, byte[curr_piece + 1] ; X_POS
   mov sil, byte[curr_piece + 2] ; Y_POS
-  
-  .drop_piece:
-  call drop_piece
-  push rax
 
   .clear_piece:
   mov r8b, 0x0 ; clear prev
   call draw_piece
+  
+  .drop_piece:
+  call drop_piece
+  push rax
 
   pop rax
   inc sil
@@ -285,10 +295,6 @@ move_piece:
   jmp .exit_movements
 
   .move_i_piece:
-  cmp dil, 10 - 3
-  jge .undo_move
-  cmp dil, -1
-  jle .undo_move
   test_pixels NONE
   jnz .undo_move
   add dil, 0x2
@@ -299,19 +305,11 @@ move_piece:
   jmp .exit_movements
 
   .move_o_piece:
-  cmp dil, 10 - 2
-  jge .undo_move
-  cmp dil, -2
-  jle .undo_move
   test_pixels RIGHT, UP, DOWN + RIGHT, UP 
   jnz .undo_move
   jmp .exit_movements
 
   .move_t_piece:
-  cmp dil, 10 - 2
-  jge .undo_move
-  cmp dil, -1
-  jle .undo_move
   test_pixels UP, UP + RIGHT
   jnz .undo_move
   add dil, 0x2
@@ -322,10 +320,6 @@ move_piece:
   jmp .exit_movements
 
   .move_s_piece:
-  cmp dil, 10 - 2
-  jge .undo_move
-  cmp dil, -1
-  jle .undo_move
   test_pixels NONE, UP + RIGHT
   jnz .undo_move
   test_pixels RIGHT, UP + RIGHT
@@ -333,10 +327,6 @@ move_piece:
   jmp .exit_movements
 
   .move_z_piece:
-  cmp dil, 10 - 2
-  jge .undo_move
-  cmp dil, -1
-  jle .undo_move
   test_pixels UP + RIGHT, UP + LEFT
   jnz .undo_move
   inc dil
@@ -347,10 +337,6 @@ move_piece:
   jmp .exit_movements
 
   .move_l_piece:
-  cmp dil, 10 -2
-  jge .undo_move
-  cmp dil, -1
-  jle .undo_move
   test_pixels UP, DOWN
   jnz .undo_move
   ; "DOWN + RIGHT" is a pixel inside the tetrimino.
@@ -360,10 +346,6 @@ move_piece:
   jmp .exit_movements
 
   .move_j_piece:
-  cmp dil, 10 - 2
-  jge .undo_move
-  cmp dil, -1
-  jle .undo_move
   ; "UP" and "RIGHT" are pixels inside the tetrimino.
   ; They're just there so that we can reach the other end of the tetrimino.
   test_pixels RIGHT, LEFT, RIGHT, UP + RIGHT 
@@ -483,50 +465,36 @@ drop_piece:
   je .drop_j_piece
 
   .drop_i_piece:
-  cmp sil, 19
-  jge .reset
   test_pixels NONE, RIGHT, RIGHT, RIGHT
   jnz .reset
   jmp .exit_drops
 
   .drop_o_piece:
-  cmp sil, 18
-  jge .reset
   test_pixels DOWN + RIGHT, RIGHT
   jnz .reset
   jmp .exit_drops
 
   .drop_t_piece:
-  cmp sil, 19
-  jge .reset
   test_pixels NONE, RIGHT, RIGHT
   jnz .reset
   jmp .exit_drops
 
   .drop_s_piece:
-  cmp sil, 19
-  jge .reset
   test_pixels NONE, RIGHT, UP + RIGHT
   jnz .reset
   jmp .exit_drops
 
   .drop_z_piece:
-  cmp sil, 19
-  jge .reset
   test_pixels UP, DOWN + RIGHT, RIGHT
   jnz .reset
   jmp .exit_drops
 
   .drop_l_piece:
-  cmp sil, 19
-  jge .reset
   test_pixels DOWN, RIGHT, RIGHT
   jnz .reset
   jmp .exit_drops
 
   .drop_j_piece:
-  cmp sil, 19
-  jge .reset
   test_pixels DOWN, RIGHT, RIGHT
   jnz .reset
   jmp .exit_drops
