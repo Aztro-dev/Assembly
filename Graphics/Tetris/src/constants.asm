@@ -9,6 +9,7 @@
 %define KEY_X 88
 %define KEY_Z 90
 %define KEY_ENTER 257
+%define KEY_BACKSPACE 259
 %define KEY_RIGHT 262
 %define KEY_LEFT 263
 %define KEY_DOWN 264

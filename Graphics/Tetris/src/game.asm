@@ -2,8 +2,6 @@
 %define BOARD_HEIGHT SCREEN_HEIGHT * 80 / 100
 %define CELL_SIZE BOARD_WIDTH / 10
 
-%define KEY_BACKSPACE 259
-
 %include "src/utils.asm"
 %include "src/tetriminoes.asm"
 
