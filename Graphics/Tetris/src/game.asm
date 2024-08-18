@@ -33,9 +33,9 @@ run_game:
   call handle_hold
   call rotate_piece
   call move_piece
+  .skip:
   call draw_bag
   call draw_hold
-  .skip:
   ret
   
 global draw_board

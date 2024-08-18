@@ -4,6 +4,7 @@
 %define KEY_RIGHT 262
 %define KEY_LEFT 263
 %define KEY_DOWN 264
+%define KEY_LEFT_SHIFT 340
 %define KEY_X 88
 %define KEY_Z 90
 
@@ -182,19 +183,40 @@ extern GetFrameTime
 section .text
 global rotate_piece
 rotate_piece:
-  .check_counter_clockwise:
   mov rdi, KEY_Z
   call IsKeyPressed
   test rax, rax
-  jnz .check_clockwise
+  jz .check_clockwise
   dec byte[curr_piece + 0x3]
+  jmp .exit
   .check_clockwise:
   mov rdi, KEY_X
   call IsKeyPressed
   test rax, rax
-  jnz .exit
+  jz .check_half_rot
   inc byte[curr_piece + 0x3]
+  jmp .exit
+  .check_half_rot:
+  mov rdi, KEY_LEFT_SHIFT
+  call IsKeyPressed
+  test rax, rax
+  jz .ret
+  add byte[curr_piece + 0x3], 0x2
   .exit:
+  xor rax, rax
+  xor rdx, rdx
+  mov al, byte[curr_piece + 0x3]
+  mov r9, 0x4
+  div r9
+  mov byte[curr_piece + 0x3], dl
+
+  mov rax, 0x1
+  mov rdi, int_message
+  xor rsi, rsi
+  mov sil, byte[curr_piece + 0x3]
+  call print_formatted
+
+  .ret:
   ret
 
 global move_piece
@@ -532,3 +554,6 @@ drop_piece:
 section .data
 piece_movement db 0x0
 timer dq 0x0
+
+section .rodata
+int_message db "%d", 0x0a, 0x0

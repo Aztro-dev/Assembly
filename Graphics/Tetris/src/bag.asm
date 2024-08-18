@@ -4,7 +4,6 @@
 %define HOLD_PIECE_CELL_SIZE 18
 
 %define KEY_C 67
-%define KEY_LEFT_SHIFT 340
 
 extern DrawText
 extern IsKeyPressed
@@ -19,13 +18,7 @@ handle_hold:
   mov rdi, KEY_C
   call IsKeyPressed
   test rax, 0x1
-  jnz .skip_checks
-  mov rdi, KEY_LEFT_SHIFT
-  call IsKeyPressed
-  test rax, rax
   jz .exit
-
-  .skip_checks:
   xor rdi, rdi
   xor rsi, rsi
   mov dil, byte[curr_piece + 1] ; X_POS
