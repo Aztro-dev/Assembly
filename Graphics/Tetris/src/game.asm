@@ -2,26 +2,10 @@
 %define BOARD_HEIGHT SCREEN_HEIGHT * 80 / 100
 %define CELL_SIZE BOARD_WIDTH / 10
 
-%define NO_COLOR 0xFF444444
-%define BLACK 0xFF000000
-%define WHITE 0xFFFFFFFF
-%define LIGHT_BLUE 0xFFFFFF00
-%define YELLOW 0xFF00FFFF
-%define PURPLE 0xFFC000C0
-%define GREEN 0xFF00FF00
-%define RED 0xFF0000FF
-%define DARK_BLUE 0xFFFF0000
-%define ORANGE 0xFF007FFF
-
 %define KEY_BACKSPACE 259
 
 %include "src/utils.asm"
 %include "src/tetriminoes.asm"
-
-extern DrawRectangle
-extern DrawRectangleLines
-extern DrawRectangleLinesEx
-extern IsKeyDown
 
 section .text
 global run_game

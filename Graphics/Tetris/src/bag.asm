@@ -3,11 +3,6 @@
 %define HOLD_PIECE_FONT_SIZE 32
 %define HOLD_PIECE_CELL_SIZE 18
 
-%define KEY_C 67
-
-extern DrawText
-extern IsKeyPressed
-
 section .text
 
 handle_hold:

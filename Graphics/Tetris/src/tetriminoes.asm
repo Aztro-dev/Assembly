@@ -1,13 +1,5 @@
 %define SIMULATION_SPEED MAX_FPS / 7 ; 7 times per second
 
-%define KEY_SPACE 32
-%define KEY_RIGHT 262
-%define KEY_LEFT 263
-%define KEY_DOWN 264
-%define KEY_LEFT_SHIFT 340
-%define KEY_X 88
-%define KEY_Z 90
-
 %define I_PIECE 0x1
 %define O_PIECE 0x2
 %define T_PIECE 0x3
@@ -23,9 +15,6 @@
 %define RIGHT 0x8
 
 %include "src/bag.asm"
-
-extern IsKeyPressed
-extern GetFrameTime
 
 %macro plot_pixel 3
   mov r8b, %1; TYPE

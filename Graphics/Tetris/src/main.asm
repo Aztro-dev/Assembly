@@ -1,27 +1,12 @@
-%define SCREEN_WIDTH 800
-%define SCREEN_HEIGHT 1000
-
-%define KEY_SPACE 32
-%define KEY_ENTER 257
 ; Uncapped
 %define MAX_FPS 200
 
+%include "src/constants.asm"
 %include "src/game.asm"
 
 section .text
 global  _start
 extern  _exit
-extern  InitWindow
-extern  WindowShouldClose
-extern  CloseWindow
-extern  BeginDrawing
-extern  EndDrawing
-extern  ClearBackground
-extern  IsKeyPressed
-
-extern DrawFPS
-extern SetTargetFPS
-extern GetFrameTime
 
 _start:
 	mov  rdi, SCREEN_WIDTH
