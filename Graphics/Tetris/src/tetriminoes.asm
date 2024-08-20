@@ -295,6 +295,8 @@ move_piece:
   jmp .exit_movements
 
   .move_i_piece:
+  test byte[curr_piece + 0x3], 0x1
+  jnz .vertical_i_piece
   test_pixels NONE
   jnz .undo_move
   add dil, 0x2
@@ -302,6 +304,14 @@ move_piece:
   sub dil, 0x2
   test rbx, rbx
   jnz .undo_move
+  jmp .exit_movements
+  .vertical_i_piece:
+  inc dil
+  test_pixels DOWN + RIGHT, UP, UP, UP
+  dec dil
+  test rbx, rbx
+  jnz .undo_move
+
   jmp .exit_movements
 
   .move_o_piece:
@@ -417,7 +427,15 @@ draw_piece:
   je .draw_j_piece
 
   .draw_i_piece:
+  test byte[curr_piece + 0x3], 0x1
+  jnz .vertical_i_piece
   plot_piece NONE, RIGHT, RIGHT, RIGHT
+  jmp .exit
+  .vertical_i_piece:
+  inc dil
+  plot_piece DOWN + RIGHT, UP, UP, UP
+  dec dil
+
   jmp .exit
 
   .draw_o_piece:
@@ -465,8 +483,18 @@ drop_piece:
   je .drop_j_piece
 
   .drop_i_piece:
+  test byte[curr_piece + 0x3], 0x1
+  jnz .vertical_i_piece
   test_pixels NONE, RIGHT, RIGHT, RIGHT
   jnz .reset
+  jmp .exit_drops
+  .vertical_i_piece:
+  inc dil
+  test_pixels DOWN + RIGHT, UP, UP, UP
+  dec dil
+  test rbx, rbx
+  jnz .reset
+
   jmp .exit_drops
 
   .drop_o_piece:
