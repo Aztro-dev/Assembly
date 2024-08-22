@@ -9,3 +9,8 @@ clean:
 
 run: main
 	./build/main
+
+check_size: src/main.asm
+	nasm -E src/main.asm -o build/processed.asm
+	loc build/processed.asm
+	rm build/processed.asm
