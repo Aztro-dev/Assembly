@@ -6,7 +6,7 @@ main.o: main.asm
 	nasm -f elf64 -gdwarf main.asm -o main.o
 
 clean:
-	rm -r build/*
+	rm -f main.o main
 
 run: main
-	./build/main
+	./main

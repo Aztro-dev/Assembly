@@ -11,19 +11,20 @@ _start:
   cpuid
 
   mov dword[string], ebx
-  mov dword[string + 0x4], edx
-  mov dword[string], ecx
+  mov dword[string + 0x4], ecx
+  mov dword[string + 0x8], edx
+  mov byte [string + 0x0c], 0x0a 
 
   mov rax, SYS_WRITE
   mov rdi, STDOUT
   mov rsi, string
-  mov rdx, 12
+  mov rdx, 13
   syscall
-
   
   mov rax, SYS_EXIT
   xor rdi, rdi
+  syscall
   ret
 
 section .bss
-string resd 3
+string resb 13
