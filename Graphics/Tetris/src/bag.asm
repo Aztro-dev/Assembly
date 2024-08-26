@@ -377,7 +377,7 @@ pull_from_bag:
 
 section .data
 ; curr_piece: TYPE, POS_X, POS_Y, ROTATION
-curr_piece db I_PIECE, 0x3, 0x0, 0x0
+curr_piece db NONE, 0x3, 0x0, 0x0
 piece_list db I_PIECE, O_PIECE, T_PIECE, S_PIECE, Z_PIECE, L_PIECE, J_PIECE
 bag times(7) db NONE
 hold db NONE
