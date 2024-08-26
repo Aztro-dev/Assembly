@@ -186,6 +186,10 @@ rotate_piece:
   call IsKeyPressed
   test rax, rax
   jz .check_clockwise
+  clear rdi, rsi, r8
+  mov dil, byte[curr_piece + 0x1]
+  mov sil, byte[curr_piece + 0x2]
+  call draw_piece
   dec byte[curr_piece + 0x3]
   jmp .exit
   .check_clockwise:
@@ -193,6 +197,10 @@ rotate_piece:
   call IsKeyPressed
   test rax, rax
   jz .check_half_rot
+  clear rdi, rsi, r8
+  mov dil, byte[curr_piece + 0x1]
+  mov sil, byte[curr_piece + 0x2]
+  call draw_piece
   inc byte[curr_piece + 0x3]
   jmp .exit
   .check_half_rot:
@@ -200,6 +208,10 @@ rotate_piece:
   call IsKeyPressed
   test rax, rax
   jz .ret
+  clear rdi, rsi, r8
+  mov dil, byte[curr_piece + 0x1]
+  mov sil, byte[curr_piece + 0x2]
+  call draw_piece
   add byte[curr_piece + 0x3], 0x2
   .exit:
   xor rax, rax

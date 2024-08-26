@@ -28,6 +28,13 @@ section .note.GNU-stack noalloc noexec nowrite progbits
 	%%skip:
 %endmacro
 
+%macro  clear 1-* 
+  %rep  %0 
+  	xor %1, %1
+  %rotate 1 
+  %endrep 
+%endmacro
+
 section .text
 extern printf
 
