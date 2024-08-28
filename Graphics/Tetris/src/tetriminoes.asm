@@ -455,7 +455,22 @@ draw_piece:
   jmp .exit
 
   .draw_t_piece:
+  cmp byte[curr_piece + 0x3], 0x0
+  jne .check_t_one
   plot_piece NONE, RIGHT, RIGHT, LEFT + UP
+  jmp .exit
+  .check_t_one:
+  cmp byte[curr_piece + 0x3], 0x1
+  jne .check_t_two
+  plot_piece RIGHT + UP, DOWN, DOWN, RIGHT + UP
+  jmp .exit
+  .check_t_two:
+  cmp byte[curr_piece + 0x3], 0x2
+  jne .check_t_three
+  plot_piece NONE, RIGHT, RIGHT, LEFT + DOWN
+  jmp .exit
+  .check_t_three:
+  plot_piece RIGHT + UP, DOWN, DOWN, LEFT + UP
   jmp .exit
 
   .draw_s_piece:
