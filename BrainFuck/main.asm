@@ -2,6 +2,7 @@
 %define SYS_WRITE 0x1
 %define SYS_OPEN 0x2
 %define SYS_CLOSE 0x3
+%define SYS_EXIT 60
 %define STDIN 0x0
 %define STDOUT 0x1
 %define TAPE_SIZE 30000
@@ -148,6 +149,6 @@ _start:
 	mov rdi, qword[file_descriptor]
 	syscall
 
-	mov rax, 60
+	mov rax, SYS_EXIT
 	mov rdi, 0
 	syscall
