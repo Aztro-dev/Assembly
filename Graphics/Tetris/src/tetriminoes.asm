@@ -220,12 +220,6 @@ rotate_piece:
   mov r9, 0x4
   div r9
   mov byte[curr_piece + 0x3], dl
-  ;
-  ; mov rax, 0x1
-  ; mov rdi, int_message
-  ; xor rsi, rsi
-  ; mov sil, byte[curr_piece + 0x3]
-  ; call print_formatted
 
   .ret:
   ret
