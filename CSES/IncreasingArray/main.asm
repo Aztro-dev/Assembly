@@ -1,128 +1,71 @@
-section .data
-number_buffer times 20 db 0 ; 20 Digits in uint64_t
-dummy_n       dq 0x0
-n       dq 0x0
+%define SYS_READ 0
+%define SYS_WRITE 1
+%define SYS_BRK 12
+%define SYS_EXIT 60
+
+%define STDIN 0
+%define STDOUT 1
+
+section .bss
+input_array resq 1
+input_buffer resq 1
+n resw 1
 
 section .text
-global  _start
-
 solve:
-	;   if(nums.size() == 1){ return 0; }
-	mov rax, qword[n]
-	cmp rax, 0x1
-	jg  .not_length_of_one
-	xor rax, rax
+	mov rax, SYS_WRITE
+	mov rdi, STDOUT
+	mov rsi, input_buffer
+	movzx rdx, word[n]
+	sal rdx, 4
+	syscall
+
+	xor rax, rax ; rax = sum
+
 	ret
 
-.not_length_of_one:
-	xor rax, rax; sum
-	mov r8, 0x1; i
-
-	;   Reset high parts of registers
-	;   Because movzx doesnt work apparently
-	xor rbx, rbx
-	xor rcx, rcx
-
-	; for(int i = 1; i < nums.size(); i++)
-
-.loop:
-	cmp r8, qword[n]
-	je  .exit_loop
-
-	;nums[i]
-	lea rdi, [arr + 4*r8]
-	mov ebx, dword [rdi]
-	;   nums[i - 1]
-	lea rdi, [arr + 4*r8 - 4]
-	mov ecx, dword [rdi]
-
-	;   if (nums[i] < nums[i - 1])
-	cmp ebx, ecx
-	jg  .continue
-
-	add rax, rcx; sum += nums[i - 1]
-	sub rax, rbx; sum -= nums[i]
-	lea rdi, [arr + 4*r8]
-	mov dword [rdi], ecx; nums[i] = nums[i - 1]
-
-.continue:
-	inc r8
-	jmp .loop
-
-.exit_loop:
-	ret
-
+global _start
 _start:
-	call read_int
-	mov  qword [n], rax
-
-	;   brk(0)
-	mov rax, 12
-	mov rdi, 0
+	mov rax, SYS_BRK
+	xor rdi, rdi
 	syscall
 
-	mov qword[arr], rax
+	mov qword[input_array], rax
+	
+	; rax = n
+	call read_int
+	mov [n], ax
 
-	;   brk(brk(0) + n * 4)
-	mov rax, qword[n]
-	mov r8, 0x4
-	mul r8
-	mov rdi, rax
-	add rdi, qword[arr]
-	mov rax, 12
+	mov rdi, qword[input_array]
+	sal rax, 2 ; times 4 
+	add rdi, rax
+	mov rax, SYS_BRK
+	syscall
+	
+	mov qword[input_buffer], rax
+	movzx rdi, word[n]
+	sal rax, 4 ; times 4 
+	add rdi, rax
+	mov rax, SYS_BRK
 	syscall
 
-	mov r8, qword [n]
-	mov rdi, arr
+	movzx rdi, word[n]
+	call read_ints
 
-.populate_array_loop:
-	test r8, r8
-	jz   .exit_populate_array_loop
-
-	push rdi
-	call read_int
-	pop  rdi
-
-	mov dword[rdi], eax
-	add rdi, 0x4; Next int
-
-	dec r8
-	jmp .populate_array_loop
-
-.exit_populate_array_loop:
 	call solve
+	mov rdi, rax
 
-	mov  rdi, rax
-	call print_uint64
+	call print_number
 
-	mov rax, 60; Exit
-	mov rdi, 0x0; Exit Code 0
+	mov rax, SYS_EXIT
+	xor rdi, rdi
 	syscall
 
-read_int:
-	mov rdi, 0x0; STDIN
-	mov rsi, number_buffer
-	mov rdx, 0x1; One character at a time
 
-.read_loop:
-	xor rax, rax; READ syscall
-	syscall
-	cmp byte [rsi], 0x0; Null character
-	je  .exit_read_loop
-	cmp byte [rsi], 0x0a; newline
-	je  .exit_read_loop
-	sub rsi, 20
-	cmp rsi, number_buffer
-	je  .exit_read_loop
-	add rsi, 21; Reset to previous value and increment
-	jmp .read_loop
+section .data
+number_buffer db 20 dup(0x0)
 
-.exit_read_loop:
-	mov  rdi, number_buffer
-	call atoi
-	call clear_number_buffer
-	ret
-
+section .text
 clear_number_buffer:
 	push rsi
 	push rcx
@@ -142,40 +85,21 @@ clear_number_buffer:
 	pop rsi
 	ret
 
-atoi:
-	mov rax, 0; Set initial total to 0
+	; print_number(rdi num) -> void
 
-.convert:
-	movzx rsi, byte [rdi]; Get the current character
-	test  rsi, rsi; Check for \0
-	je    .done
-
-	cmp rsi, 0x0a; newline
-	je  .done
-
-	cmp rsi, '0'; Anything less than 0 is invalid
-	jl  .error
-
-	cmp rsi, '9'; Anything greater than 9 is invalid
-	jg  .error
-
-	sub  rsi, 48; Convert from ASCII to decimal
-	imul rax, 10; Multiply total by 10
-	add  rax, rsi; Add current digit to total
-
-	inc rdi; Get the address of the next character
-	jmp .convert
-
-.error:
-	mov rax, -1; Return -1 on error
-
-.done:
-	ret ; Return total or error code
-
-print_uint64:
+print_number:
 	push rax
 	push rsi
 	push rdx
+
+	test rdi, rdi
+	jnz .skip_zero
+
+	mov byte[number_buffer + 19], '0'
+	mov r9, 0x1
+	jmp .exit_loop
+
+	.skip_zero:
 	mov  r8, 10; Base 10
 
 	mov rax, rdi
@@ -195,18 +119,103 @@ print_uint64:
 	jmp .loop
 
 .exit_loop:
-	mov rax, 0x1
-	mov rdi, 0x1
+	mov rax, SYS_WRITE
+	mov rdi, STDOUT
 	lea rsi, [number_buffer + 20]
+	mov byte[rsi], 0x0a
 	sub rsi, r9
 	mov rdx, r9
+	inc rdx
 	syscall
 
 	pop rdx
 	pop rsi
-	pop rax
+	pop rdx
 
 	ret
 
-section .bss
-arr     resq 1
+atoi:
+	mov rax, 0; Set initial total to 0
+
+.convert:
+	movzx rsi, byte [rdi]; Get the current character
+	test  rsi, rsi; Check for \0
+	je    .done
+
+	cmp rsi, 0x0a; newline
+	je  .done
+
+	cmp rsi, 48; Anything less than 0 is invalid
+	jl  .error
+
+	cmp rsi, 57; Anything greater than 9 is invalid
+	jg  .error
+
+	sub  rsi, 48; Convert from ASCII to decimal
+	imul rax, 10; Multiply total by 10
+	add  rax, rsi; Add current digit to total
+
+	inc rdi; Get the address of the next character
+	jmp .convert
+
+.error:
+	mov rax, -1; Return -1 on error
+
+.done:
+	ret ; Return total or error code
+
+	; read_int(rdi fd) -> rax output
+read_int:
+	mov rax, SYS_READ
+	mov rdi, STDOUT
+	mov rsi, number_buffer
+	mov rdx, 0x1 ; one character at a time
+
+.read_loop:
+	mov rax, SYS_READ
+	syscall
+	cmp byte [rsi], 0x0; Null character
+	je  .exit_read_loop
+	cmp byte [rsi], 0x0a; newline
+	je  .exit_read_loop
+	sub rsi, 20
+	cmp rsi, number_buffer
+	je  .exit_read_loop
+	add rsi, 21; Reset to previous value and increment
+	jmp .read_loop
+
+.exit_read_loop:
+	mov  rdi, number_buffer
+	call atoi
+	call clear_number_buffer
+	ret
+
+read_ints:
+	mov rdx, rdi; amount of numbers
+	sal rdx, 4 ; read 4 characters for every number
+	mov rax, SYS_READ
+	mov rdi, STDIN; STDIN
+	mov rsi, input_buffer
+	syscall
+
+	.outer_read_loop:
+		test r9, r9
+		jz .exit
+		.read_loop:
+			cmp byte [rsi], 0x0; Null character
+			je  .exit_read_loop
+			cmp byte [rsi], 0x0a; newline
+			je  .exit_read_loop
+			sub rsi, 16
+			cmp rsi, input_buffer
+			je  .exit_read_loop
+			add rsi, 17; Reset to previous value and increment
+			jmp .read_loop
+
+		.exit_read_loop:
+			mov  rdi, input_buffer
+			call atoi
+			call clear_input_buffer
+		jmp .outer_read_loop
+	.exit:
+	ret
