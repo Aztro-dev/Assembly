@@ -13,13 +13,16 @@ n resw 1
 
 section .text
 solve:
-	mov rax, SYS_WRITE
-	mov rdi, STDOUT
-	mov rsi, input_buffer
-	movzx rdx, word[n]
-	sal rdx, 4
-	syscall
+	xor r9, r9
+	.loop:
+		cmp r9w, word[n]
+		jge .exit
+		inc r9
+		mov edi, dword[input_array + 4 * r9]
+		call print_number
+		jmp .loop
 
+	.exit:
 	xor rax, rax ; rax = sum
 
 	ret
@@ -44,7 +47,7 @@ _start:
 	
 	mov qword[input_buffer], rax
 	movzx rdi, word[n]
-	sal rax, 4 ; times 4 
+	sal rax, 4 ; times 16 
 	add rdi, rax
 	mov rax, SYS_BRK
 	syscall
@@ -55,7 +58,7 @@ _start:
 	call solve
 	mov rdi, rax
 
-	call print_number
+	; call print_number
 
 	mov rax, SYS_EXIT
 	xor rdi, rdi
@@ -91,6 +94,7 @@ print_number:
 	push rax
 	push rsi
 	push rdx
+	push r9
 
 	test rdi, rdi
 	jnz .skip_zero
@@ -128,6 +132,7 @@ print_number:
 	inc rdx
 	syscall
 
+	pop r9
 	pop rdx
 	pop rsi
 	pop rdx
@@ -139,27 +144,19 @@ atoi:
 
 .convert:
 	movzx rsi, byte [rdi]; Get the current character
-	test  rsi, rsi; Check for \0
-	je    .done
 
-	cmp rsi, 0x0a; newline
-	je  .done
+	cmp rsi, '0'
+	jl  .done
 
-	cmp rsi, 48; Anything less than 0 is invalid
-	jl  .error
+	cmp rsi, '9'
+	jg  .done
 
-	cmp rsi, 57; Anything greater than 9 is invalid
-	jg  .error
-
-	sub  rsi, 48; Convert from ASCII to decimal
+	sub  rsi, '0' ; Convert from ASCII to decimal
 	imul rax, 10; Multiply total by 10
 	add  rax, rsi; Add current digit to total
 
 	inc rdi; Get the address of the next character
 	jmp .convert
-
-.error:
-	mov rax, -1; Return -1 on error
 
 .done:
 	ret ; Return total or error code
@@ -192,30 +189,40 @@ read_int:
 
 read_ints:
 	mov rdx, rdi; amount of numbers
-	sal rdx, 4 ; read 4 characters for every number
+	sal rdx, 4 ; read 16 characters for every number
 	mov rax, SYS_READ
 	mov rdi, STDIN; STDIN
 	mov rsi, input_buffer
 	syscall
 
+	xor r9, r9
+
 	.outer_read_loop:
-		test r9, r9
-		jz .exit
+		cmp r9w, word[n]
+		jge .exit
+		dec rsi
 		.read_loop:
-			cmp byte [rsi], 0x0; Null character
-			je  .exit_read_loop
-			cmp byte [rsi], 0x0a; newline
-			je  .exit_read_loop
-			sub rsi, 16
-			cmp rsi, input_buffer
-			je  .exit_read_loop
-			add rsi, 17; Reset to previous value and increment
-			jmp .read_loop
+			inc rsi
+			cmp byte [rsi], '0'
+			jl  .read_loop
+			cmp byte [rsi], '9'
+			jg  .read_loop
 
 		.exit_read_loop:
-			mov  rdi, input_buffer
+			push rsi
+			mov  rdi, rsi
 			call atoi
-			call clear_input_buffer
+			pop rsi 
+			mov dword[input_array + 4 * r9], eax
+		.next_num_loop:
+			inc rsi
+			cmp byte [rsi], '0'
+			jl  .exit_next_num_loop
+			cmp byte [rsi], '9'
+			jg  .exit_next_num_loop
+			jmp .next_num_loop
+		.exit_next_num_loop:
+		inc r9
 		jmp .outer_read_loop
 	.exit:
 	ret
