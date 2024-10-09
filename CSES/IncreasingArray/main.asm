@@ -9,22 +9,37 @@
 section .bss
 input_array resq 1
 input_buffer resq 1
-n resw 1
+n resd 1
 
 section .text
 solve:
 	xor r9, r9
+    xor rax, rax
+    xor rbx, rbx
+    xor rcx, rcx
+    mov r10, qword[input_array]
 	.loop:
-		cmp r9w, word[n]
+        inc r9
+		cmp r9d, dword[n]
 		jge .exit
-		inc r9
-		mov edi, dword[input_array + 4 * r9]
-		call print_number
+        ;nums[i]
+        mov ebx, dword[r10 + 4 * r9]
+        
+    	;   nums[i - 1]
+        mov ecx, dword[r10 + 4 * r9 - 4]
+
+    	;   if (nums[i] < nums[i - 1])
+    	cmp ebx, ecx
+    	jg  .continue
+    
+    	add rax, rcx; sum += nums[i - 1]
+    	sub rax, rbx; sum -= nums[i]
+    	mov dword [r10 + 4 * r9], ecx; nums[i] = nums[i - 1]
+
+        .continue:
 		jmp .loop
 
 	.exit:
-	xor rax, rax ; rax = sum
-
 	ret
 
 global _start
@@ -37,7 +52,7 @@ _start:
 	
 	; rax = n
 	call read_int
-	mov [n], ax
+	mov dword [n], eax
 
 	mov rdi, qword[input_array]
 	sal rax, 2 ; times 4 
@@ -46,19 +61,20 @@ _start:
 	syscall
 	
 	mov qword[input_buffer], rax
-	movzx rdi, word[n]
+    xor rdi, rdi
+	mov edi, dword[n]
 	sal rax, 4 ; times 16 
 	add rdi, rax
 	mov rax, SYS_BRK
 	syscall
 
-	movzx rdi, word[n]
+	mov edi, dword[n]
 	call read_ints
 
 	call solve
 	mov rdi, rax
 
-	; call print_number
+	call print_number
 
 	mov rax, SYS_EXIT
 	xor rdi, rdi
@@ -135,11 +151,13 @@ print_number:
 	pop r9
 	pop rdx
 	pop rsi
-	pop rdx
+	pop rax
 
 	ret
 
 atoi:
+    push rdi
+    push rsi
 	mov rax, 0; Set initial total to 0
 
 .convert:
@@ -159,22 +177,22 @@ atoi:
 	jmp .convert
 
 .done:
+    pop rsi
+    pop rdi
 	ret ; Return total or error code
 
-	; read_int(rdi fd) -> rax output
+	; read_int() -> rax output
 read_int:
 	mov rax, SYS_READ
-	mov rdi, STDOUT
+	mov rdi, STDIN
 	mov rsi, number_buffer
 	mov rdx, 0x1 ; one character at a time
 
 .read_loop:
 	mov rax, SYS_READ
 	syscall
-	cmp byte [rsi], 0x0; Null character
-	je  .exit_read_loop
-	cmp byte [rsi], 0x0a; newline
-	je  .exit_read_loop
+	cmp byte [rsi], '0'; Null character
+	jl  .exit_read_loop
 	sub rsi, 20
 	cmp rsi, number_buffer
 	je  .exit_read_loop
@@ -184,21 +202,22 @@ read_int:
 .exit_read_loop:
 	mov  rdi, number_buffer
 	call atoi
-	call clear_number_buffer
+    call clear_number_buffer
 	ret
 
 read_ints:
-	mov rdx, rdi; amount of numbers
+	mov rdx, rdi; amount of nums
 	sal rdx, 4 ; read 16 characters for every number
 	mov rax, SYS_READ
-	mov rdi, STDIN; STDIN
-	mov rsi, input_buffer
+	mov rdi, STDIN
+	mov rsi, qword[input_buffer]
 	syscall
 
 	xor r9, r9
+    mov r10, qword[input_array]
 
 	.outer_read_loop:
-		cmp r9w, word[n]
+		cmp r9d, dword[n]
 		jge .exit
 		dec rsi
 		.read_loop:
@@ -209,11 +228,12 @@ read_ints:
 			jg  .read_loop
 
 		.exit_read_loop:
-			push rsi
 			mov  rdi, rsi
 			call atoi
-			pop rsi 
-			mov dword[input_array + 4 * r9], eax
+            mov rdi, rax
+            ; call print_number
+			mov dword[r10 + 4 * r9], eax
+        dec rsi
 		.next_num_loop:
 			inc rsi
 			cmp byte [rsi], '0'
