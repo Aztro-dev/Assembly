@@ -28,10 +28,11 @@ itoa:   std ; set direction flag to 1 (down)
         xchg rax,rdx ; rdx = rax, rax = rdx 
         add rax,'0' ; Char to ASCII
         stosb
-        xchg rax,rdx
+        xchg rax,rdx ; rax = rdx, rdx = rax
         test rax,rax
-        jnz .lp
-        test bl,bl
+        jnz .lp ; if rax is zero, loop
+        ; if the sign is not zero, add a negative sign:
+        test bl,bl 
         jz .p
         mov al,'-'
         stosb
