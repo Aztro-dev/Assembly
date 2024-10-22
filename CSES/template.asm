@@ -33,7 +33,7 @@ _start:
 
     mov rax, SYS_WRITE
     mov rdi, STDOUT
-    mov rsi, r9
+    mov rsi, output_buffer
     mov rdx, BUF_SIZE
     syscall
 
