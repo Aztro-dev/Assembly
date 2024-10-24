@@ -1,230 +1,182 @@
+%define SYS_READ 0
+%define SYS_WRITE 1
+%define SYS_EXIT 60
+
+%define STDIN 0
+%define STDOUT 1
+
+%define BUF_SIZE 20000000
+
 section .rodata
-no_solution: db "NO SOLUTION",0x0a
-n_equals_one: db "1", 0x0a
-n_equals_four: db "2 4 1 3", 0x0a
-
-section .data
-number_buffer: times 20 db 0x0
-output_size: dq 0x0
-
-section .text
-global  _start
-
-solve:
-	cmp rax, 0x1
-	jne .not_equals_one
-	mov rdi, 0x1
-	mov rsi, n_equals_one
-	mov rdx, 2
-	syscall
-	ret
-
-.not_equals_one:
-	cmp rax, 0x4
-	jne .not_equals_four
-	mov rax, 0x1
-	mov rdi, 0x1
-	mov rsi, n_equals_four
-	mov rdx, 8
-	syscall
-	ret
-
-.not_equals_four:
-	cmp rax, 0x4
-	jge .exists_solution
-	mov rax, 0x1
-	mov rdi, 0x1
-	mov rsi, no_solution
-	mov rdx, 12
-	syscall
-	ret
-
-.exists_solution:
-	mov r8, rax; temp_n
-	and r8b, 0xFE; reset last digit
-
-.while_temp_is_positive:
-	cmp  r8, 0x0
-	jle  .exit_while_temp_is_positive
-	mov  rdi, r8
-	call append_output
-	sub  r8, 0x2
-	jmp  .while_temp_is_positive
-
-.exit_while_temp_is_positive:
-	mov r8, rax
-	bt  rax, 0; Move least significant bit of rax to carry flag
-	jc  .while_temp_is_positive; Jump if carry
-	dec r8
-
-.while_temp_is_positive_again:
-	cmp  r8, 0x0
-	jle  .exit
-	mov  rdi, r8
-	call append_output
-	sub  r8, 0x2
-	jmp  .while_temp_is_positive_again
-
-.exit:
-
-	ret
-
-	; input number is in rdi
-
-append_output:
-	push rax
-	push r8
-	call itoa
-	pop  r8
-
-	mov rax, 12; sys_brk
-	mov r12, qword[output_size]
-	lea rdi, [output + r12 + rdx + 1]; Allocate extra bytes for the new number
-	syscall
-
-	lea rdi, [output + r12]
-
-.add_digit_loop:
-	cmp r9, 0x0
-	je  .exit_add_digit_loop
-	mov al, byte [rsi]
-
-	mov byte [rdi], al
-	inc rdi
-	inc rsi
-	dec r9
-
-	jmp .add_digit_loop
-
-.exit_add_digit_loop:
-	inc rdi
-	mov byte[rdi], ' '; Add a space at the end
-	mov rax, qword [output_size]
-	add rax, rdx
-	inc rax
-	mov qword[output_size], rax
-
-	pop rax
-
-	ret
-
-_start:
-	;   sys_brk(0)
-	mov rax, 12
-	xor rdi, rdi
-	syscall
-	mov qword[output], rax
-
-	call read_int
-
-	call solve
-
-	mov rax, 60
-	mov rdi, 0
-	syscall
-
-itoa:
-	mov r8, 10; Base 10
-
-	mov rax, rdi
-	mov rsi, number_buffer
-	add rsi, 19; Last digit of buffer
-	mov r9, 0x0; Size
-
-.loop:
-	cmp rax, 0x0
-	jle .exit_loop
-	xor rdx, rdx
-	div r8
-	add dl, 48; To ASCII num
-	mov byte [rsi], dl
-	dec rsi
-	inc r9
-	jmp .loop
-
-.exit_loop:
-	lea rsi, [number_buffer + 20]
-	sub rsi, r9
-	mov rdx, r9
-
-	ret
-
-clear_number_buffer:
-	push rsi
-	push rcx
-	mov  rcx, 20; 20 characters
-	mov  rsi, number_buffer
-
-.clear_loop:
-	mov byte [rsi], 0x0; Clear byte
-	inc rsi
-	cmp rcx, 0x0; See if rcx is 0
-	je  .exit_loop
-	dec rcx
-	jmp .clear_loop
-
-.exit_loop:
-	pop rcx
-	pop rsi
-	ret
-
-atoi:
-	mov rax, 0; Set initial total to 0
-
-.convert:
-	movzx rsi, byte [rdi]; Get the current character
-	test  rsi, rsi; Check for \0
-	je    .done
-
-	cmp rsi, 0x0a; newline
-	je  .done
-
-	cmp rsi, 48; Anything less than 0 is invalid
-	jl  .error
-
-	cmp rsi, 57; Anything greater than 9 is invalid
-	jg  .error
-
-	sub  rsi, 48; Convert from ASCII to decimal
-	imul rax, 10; Multiply total by 10
-	add  rax, rsi; Add current digit to total
-
-	inc rdi; Get the address of the next character
-	jmp .convert
-
-.error:
-	mov rax, -1; Return -1 on error
-
-.done:
-	ret ; Return total or error code
-
-	; read_int(rdi fd) -> rax output
-
-read_int:
-	mov rdi, 0x0; STDIN
-	mov rsi, number_buffer
-	mov rdx, 0x1; One character at a time
-
-.read_loop:
-	xor rax, rax; READ syscall
-	syscall
-	cmp byte [rsi], 0x0; Null character
-	je  .exit_read_loop
-	cmp byte [rsi], 0x0a; newline
-	je  .exit_read_loop
-	sub rsi, 20
-	cmp rsi, number_buffer
-	je  .exit_read_loop
-	add rsi, 21; Reset to previous value and increment
-	jmp .read_loop
-
-.exit_read_loop:
-	mov  rdi, number_buffer
-	call atoi
-	call clear_number_buffer
-	ret
+no_solution db "NO SOLUTION", 0x0a
+no_solution_len equ $ - no_solution
+four db "2 4 1 3", 0x0a
+four_len equ $ - four
 
 section .bss
+input_buffer resb 20
+output_buffer resb BUF_SIZE
 
-output:
-	resq 1
+section .text
+solve:
+    cmp rax, 1
+    jne .skip_one
+    call write_uint64
+    ret
+    .skip_one:
+    cmp rax, 4
+    jge .skip_no_solution
+    call write_no_solution
+    .skip_no_solution:
+
+    cmp rax, 4
+    jne .skip_four
+    call write_four
+    .skip_four:
+
+    ; temp_n = n - n & 1
+    mov rbx, rax
+    and al, 0xFE
+
+    .even_loop:
+        cmp rax, 0x0
+        jle .exit_even_loop
+        call write_uint64
+        sub rax, 0x2
+        jmp .even_loop
+
+    .exit_even_loop:
+    mov rax, rbx
+    ; Closest but highest odd number
+    dec rax
+    or rax, 1
+
+    .odd_loop:
+        cmp rax, 0x0
+        jle .exit_odd_loop
+        call write_uint64
+        sub rax, 0x2
+        jmp .odd_loop
+    .exit_odd_loop:
+    ret
+
+global _start
+_start:
+    mov r8, input_buffer
+    mov r9, output_buffer
+    
+    mov rax, SYS_READ
+    mov rdi, STDIN
+    mov rsi, r8
+    mov rdx, 20
+    syscall
+
+    call atoi
+
+    ; Length of output
+    xor r11, r11
+    
+    call solve
+
+    call write_newline
+
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
+    mov rsi, output_buffer
+    mov rdx, r11
+    syscall
+
+    mov rax, SYS_EXIT
+    mov rdi, 0x0
+    syscall
+    ret
+
+atoi:
+    xor rax, rax
+    .loop:
+    movzx rcx, byte [r8]
+    inc r8
+
+    cmp cl, 0x30
+    jl .end
+    
+    ; rax = 10 * rax - '0'
+    shl rax, 1		
+    lea rax, [rax + rax * 4 -48]        
+    ; rax += character
+    add rax, rcx
+
+    jmp .loop
+    .end:
+    ret
+write_uint64:
+    push rax
+    push rbp
+
+    mov rcx, 10
+    mov rbp, rsp
+    .div:
+    xor rdx, rdx
+    div rcx
+    add rdx, 0x30 ; num % 10 + '0'
+
+    dec rsp
+    mov byte [rsp], dl ; push character to stack
+    
+    test rax, rax
+    jnz .div ; keep pushing to stack for rest of number
+
+    ; Increase length of output by number of bytes
+    add r11, rbp
+    sub r11, rsp
+    
+    ; copy stack string to buffer
+    ; we do this to not have to keep track
+    ; of the current position in the buffer
+    .loop:
+    mov cl, byte [rsp]
+    inc rsp
+
+    mov byte [r9], cl
+    inc r9
+
+    cmp rsp, rbp
+    jl .loop
+
+    mov byte[r9], 0x20 ; space
+    inc r9
+    inc r11
+    
+    pop rbp
+    pop rax
+    ret
+
+write_newline:
+    mov byte [r9], 0x0a
+    inc r9
+    inc r11
+    ret
+
+write_no_solution:
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
+    mov rsi, no_solution
+    mov rdx, no_solution_len
+    syscall
+
+    mov rax, SYS_EXIT
+    mov rdi, 0x0
+    syscall
+    ret
+    
+write_four:
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
+    mov rsi, four
+    mov rdx, four_len
+    syscall
+
+    mov rax, SYS_EXIT
+    mov rdi, 0x0
+    syscall
+    ret
