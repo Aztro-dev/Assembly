@@ -28,13 +28,16 @@ _start:
     syscall
 
     call solve
+    
+    ; Length of output buffer
+    xor r11, r11
 
     call write_uint64
 
     mov rax, SYS_WRITE
     mov rdi, STDOUT
     mov rsi, output_buffer
-    mov rdx, BUF_SIZE
+    mov rdx, r11
     syscall
 
     mov rax, SYS_EXIT
@@ -76,6 +79,10 @@ write_uint64:
     dec rsp
     mov byte [rsp], dl ; push character to stack
 
+    ; Add bytes created to r11 (length of output buffer)
+    add r11, rbp
+    sub r11, rsp
+
     test rax, rax
     jnz .div ; keep pushing to stack for rest of number
 
@@ -88,6 +95,8 @@ write_uint64:
 
     mov byte [r9], cl
     inc r9
+
+    inc r11
 
     cmp rsp, rbp
     jl .loop
@@ -104,4 +113,5 @@ write_uint64:
 write_newline:
     mov byte [r9], 0x0a
     inc r9
+    inc r11
     ret
