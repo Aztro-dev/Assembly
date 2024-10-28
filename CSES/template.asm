@@ -56,7 +56,7 @@ atoi:
     
     ; rax = 10 * rax - '0'
     shl rax, 1		
-    lea rax, [rax + rax * 4 -48]        
+    lea rax, [rax + rax * 4 - 48]        
     ; rax += character
     add rax, rcx
 
