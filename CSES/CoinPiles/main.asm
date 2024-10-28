@@ -5,7 +5,7 @@
 %define STDIN 0
 %define STDOUT 1
 
-%define BUF_SIZE 200
+%define BUF_SIZE 1000000
 
 section .bss
 input_buffer resb BUF_SIZE
@@ -13,7 +13,58 @@ output_buffer resb BUF_SIZE
 
 section .text
 solve:
-    mov rax, 0x55AA
+    call atoi
+    mov r15, rax ; counter for test cases
+    mov r12, 0x3 ; for remainder of 3
+    .test_case_loop:
+        cmp r15, 0x0
+        jle .exit_test_case_loop
+        dec r15
+
+        call atoi
+        mov rbx, rax
+        call atoi
+
+        ; if a * 2 < b, then no
+        shl rax, 1
+        cmp rax, rbx
+        jl .no
+        
+        ; if b * 2 < a, then no 
+        shr rax, 1
+        shl rbx, 1
+        cmp rbx, rax
+        jl .no
+
+        shr rbx, 1
+
+        ; if (a + b) % 3 != 0, then no
+        mov r13, rax
+        xor rdx, rdx
+        add rax, rbx
+        div r12
+        test rdx, rdx
+        jnz .no
+
+        .yes:
+        mov qword[r9], 0x0a534559 ; "YES\n"
+        add r9, 4
+        add r11, 4
+        jmp .continue
+
+        .no:
+        call write_uint64
+        mov rax, rbx
+        call write_uint64
+
+        mov qword[r9], 0x0a4f4e ; "NO\n"
+        add r9, 3
+        add r11, 3
+
+        .continue:
+
+        jmp .test_case_loop
+    .exit_test_case_loop:
     ret
 
 global _start
@@ -26,13 +77,11 @@ _start:
     mov rsi, r8
     mov rdx, BUF_SIZE
     syscall
-
-    call solve
     
     ; Length of output buffer
     xor r11, r11
 
-    call write_uint64
+    call solve
 
     mov rax, SYS_WRITE
     mov rdi, STDOUT
@@ -55,7 +104,7 @@ atoi:
     jl .end
     
     ; rax = 10 * rax - '0'
-    shl rax, 1		
+    shl rax, 1
     lea rax, [rax + rax * 4 -48]        
     ; rax += character
     add rax, rcx
@@ -108,10 +157,4 @@ write_uint64:
     pop rcx
     pop rbp
     pop rax
-    ret
-
-write_newline:
-    mov byte [r9], 0x0a
-    inc r9
-    inc r11
     ret
