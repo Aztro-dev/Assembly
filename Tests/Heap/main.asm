@@ -11,11 +11,42 @@
 section .bss
 input_buffer resb BUF_SIZE
 output_buffer resb BUF_SIZE
+struc node
+    data resq 1
+    parent resq 1
+    left resq 1
+    right resq 1
+endstruc
+
 heap resq 1
+input_array resq 1
 heap_len resq 1
 
 section .text
 solve:
+    call atoi
+    mov qword[heap_len], rax
+
+    mov rdi, rax
+    call malloc
+
+    mov qword[heap], rax
+    mov r14, qword[heap]
+    mov r13, qword[heap_len]
+    shl r13, 3 ; r13 * 8
+    add r13, r14
+    .loop:
+        cmp r14, r13
+        jge .exit_loop
+        call atoi
+        mov qword[r14], rax
+        
+        add r14, 0x8
+        jmp .loop
+
+    .exit_loop:
+
+    
     ret
 
 global _start
@@ -28,8 +59,6 @@ _start:
     mov rsi, r8
     mov rdx, BUF_SIZE
     syscall
-
-    call input_heap
 
     call solve
 
@@ -117,34 +146,19 @@ write_newline:
     inc r11
     ret
     
-input_heap:
-    call atoi
-    mov qword[heap_len], rax
-    mov rdi, rax
-    call malloc
-    mov qword[heap], rax
-    
-    mov rbx, 0x0
-    .loop:
-        cmp rbx, qword[heap_len]
-        jge .exit
-        call atoi
-        mov qword[heap + 8 * rbx], rax
-        inc rbx
-        jmp .loop
-    .exit:
-    ret
-
 output_heap:
     mov rbx, 0x0
+    mov r15, qword[heap_len]
+    mov r14, qword[heap]
     .loop:
-        cmp rbx, qword[heap_len]
+        cmp rbx, r15
         jge .exit
-        mov rax, qword[heap + 8 * rbx]
+        mov rax, qword[r14 + 8 * rbx]
         call write_uint64
         inc rbx
         jmp .loop
     .exit:
+    call write_newline
     ret
     
 malloc:
