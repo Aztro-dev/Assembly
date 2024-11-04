@@ -32,16 +32,16 @@ solve:
 
     mov qword[heap], rax
     mov r14, qword[heap]
-    mov r13, qword[heap_len]
-    shl r13, 3 ; r13 * 8
-    add r13, r14
+    xor r13, r13
+    mov r12, qword[heap_len]
     .loop:
-        cmp r14, r13
+        cmp r13, r12
         jge .exit_loop
         call atoi
-        mov qword[r14], rax
         
-        add r14, 0x8
+        mov qword[r14 + 8 * r13], rax
+        
+        inc r13
         jmp .loop
 
     .exit_loop:
