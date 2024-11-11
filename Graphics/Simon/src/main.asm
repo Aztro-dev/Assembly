@@ -1,6 +1,7 @@
-%define MAX_FPS 200
+%define MAX_FPS 0
 
 %include "src/constants.asm"
+%include "src/utils.asm"
 %include "src/game.asm"
 
 section .text

@@ -35,7 +35,9 @@ extern IsKeyDown
 
 extern DrawFPS
 extern SetTargetFPS
-extern GetFrameTime
+extern GetTime
+extern SetRandomSeed
+extern GetRandomValue
 
 extern DrawRectangle
 extern DrawRectangleLines
