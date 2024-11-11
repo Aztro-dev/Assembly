@@ -25,6 +25,8 @@ _start:
 	mov  rdi, 0xFF181818
 	call ClearBackground
 
+	call run_game
+
 	call draw_board
 
 	mov  rdi, 10
