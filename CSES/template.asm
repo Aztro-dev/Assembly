@@ -27,12 +27,10 @@ _start:
     mov rdx, BUF_SIZE
     syscall
 
-    call solve
-    
     ; Length of output buffer
     xor r11, r11
 
-    call write_uint64
+    call solve
 
     mov rax, SYS_WRITE
     mov rdi, STDOUT
