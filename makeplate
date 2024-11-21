@@ -1,9 +1,6 @@
 compile:
-  @nasm -f win64 template.asm
-  @g++ main.cpp -masm=intel template.obj -o main
-  @g++ main.cpp -masm=intel template.o -o main
+  @nasm -f elf64 template.asm
+  @ld template.o -o main
 clean:
-  @rm -f template.obj
   @rm -f template.o
-  @rm -f main.exe
   @rm -f main
