@@ -14,6 +14,7 @@
 %define KEY_LEFT 263
 %define KEY_DOWN 264
 %define KEY_LEFT_SHIFT 340
+%define MOUSE_BUTTON_LEFT 0
 
 %define NO_COLOR 0xFF444444
 %define BLACK 0xFF000000
@@ -32,6 +33,9 @@ extern ClearBackground
 
 extern IsKeyPressed
 extern IsKeyDown
+extern IsMouseButtonPressed
+extern GetMouseX
+extern GetMouseY
 
 extern DrawFPS
 extern SetTargetFPS

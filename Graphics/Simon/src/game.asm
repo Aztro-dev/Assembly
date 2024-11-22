@@ -9,7 +9,8 @@ section .text
 global run_game
 run_game:
   cmp qword[move_length], 255
-  jl .continue
+  jmp .continue
+  ; jl .continue
   mov rax, 0x0 ; num args
   mov rdi, win_string
   call print_formatted
@@ -20,8 +21,44 @@ run_game:
 	ret
 
   .continue:
+  call get_clicked_square
+  cmp rax, 0x5
+  je .exit
+
+  mov rdi, int_string
+  mov rsi, rax
+  mov rax, 0x0
+  call print_formatted
+
   call pick_square
 
+  .exit:
+  ret
+
+get_clicked_square:
+  mov rdi, MOUSE_BUTTON_LEFT
+  call IsMouseButtonPressed
+  test rax, rax
+  jnz .continue
+  mov rax, 0x5
+  ret
+
+  .continue:
+  call GetMouseX
+  xor rdx, rdx
+  mov r15, SQUARE_WIDTH
+  div r15
+
+  mov r14, rax
+
+  call GetMouseY
+  xor rdx, rdx
+  mov r15, SQUARE_HEIGHT
+  div r15
+
+
+  sal rax, 0x1
+  add rax, r14
   ret
 
 pick_square:
@@ -91,3 +128,4 @@ draw_board:
 section .rodata
 border_thickness dd 2.0
 win_string db "You won!", 0x0a, 0x0
+int_string db "%d", 0x0a, 0x0
