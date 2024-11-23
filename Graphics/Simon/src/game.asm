@@ -76,6 +76,7 @@ highlight_click:
 
   xor rax, rax
   mov al, byte[most_recent_click]
+  and al, 0x1
 
   mov r15, SQUARE_WIDTH
   mul r15
