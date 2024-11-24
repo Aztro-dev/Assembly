@@ -1,4 +1,4 @@
-%define MAX_FPS 200
+%define MAX_FPS 10
 
 %include "src/constants.asm"
 %include "src/utils.asm"
@@ -26,9 +26,9 @@ _start:
 	mov  rdi, 0xFF181818
 	call ClearBackground
 
-	call run_game
-
 	call draw_board
+
+	call run_game
 
 	mov  rdi, 10
 	mov  rsi, 10

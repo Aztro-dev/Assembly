@@ -34,6 +34,7 @@ extern ClearBackground
 extern IsKeyPressed
 extern IsKeyDown
 extern IsMouseButtonPressed
+extern IsMouseButtonDown
 extern GetMouseX
 extern GetMouseY
 

@@ -4,6 +4,7 @@
 section .data
 moves times (255) db 0x0
 move_length dq 0x0
+most_recent_click db 0x5
 
 section .text
 global run_game
@@ -25,14 +26,15 @@ run_game:
   cmp rax, 0x5
   je .exit
 
-  mov rdi, int_string
-  mov rsi, rax
-  mov rax, 0x0
-  call print_formatted
-
   call pick_square
 
   .exit:
+  cmp byte[most_recent_click], 0x5
+  je .exit_but_for_real_this_time
+
+  call highlight_click
+
+  .exit_but_for_real_this_time:
   ret
 
 get_clicked_square:
@@ -56,9 +58,41 @@ get_clicked_square:
   mov r15, SQUARE_HEIGHT
   div r15
 
-
   sal rax, 0x1
   add rax, r14
+
+  mov byte[most_recent_click], al
+  ret
+
+highlight_click:
+  mov rdi, MOUSE_BUTTON_LEFT
+  call IsMouseButtonDown
+  test rax, rax
+  jnz .continue
+
+  mov byte[most_recent_click], 0x5
+  ret
+  .continue:
+
+  xor rax, rax
+  mov al, byte[most_recent_click]
+
+  mov r15, SQUARE_WIDTH
+  mul r15
+  mov rdi, rax
+
+  xor rax, rax
+  mov al, byte[most_recent_click]
+  sar rax, 0x1
+
+  mov r15, SQUARE_HEIGHT
+  mul r15
+  mov rsi, rax
+
+  mov rdx, SQUARE_WIDTH
+  mov rcx, SQUARE_HEIGHT
+  mov r8, WHITE
+  call DrawRectangle
   ret
 
 pick_square:
