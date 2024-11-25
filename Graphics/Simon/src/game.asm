@@ -66,9 +66,9 @@ get_clicked_square:
 
 highlight_click:
   mov rdi, MOUSE_BUTTON_LEFT
-  call IsMouseButtonDown
+  call IsMouseButtonReleased
   test rax, rax
-  jnz .continue
+  jz .continue
 
   mov byte[most_recent_click], 0x5
   ret
