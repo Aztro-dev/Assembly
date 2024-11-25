@@ -2,6 +2,7 @@
 
 %include "src/constants.asm"
 %include "src/utils.asm"
+%include "src/sound.asm"
 %include "src/game.asm"
 
 section .text
