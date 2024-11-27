@@ -31,6 +31,13 @@ extern BeginDrawing
 extern EndDrawing
 extern ClearBackground
 
+extern InitAudioDevice
+extern LoadSound
+extern PlaySound
+extern CloseAudioDevice
+extern UnloadSound
+
+
 extern IsKeyPressed
 extern IsKeyDown
 extern IsMouseButtonPressed

@@ -9,6 +9,7 @@ most_recent_click db 0x5
 section .text
 global run_game
 run_game:
+  ; Win condition
   cmp qword[move_length], 255
   jmp .continue
   ; jl .continue
@@ -25,6 +26,8 @@ run_game:
   call get_clicked_square
   cmp rax, 0x5
   je .exit
+
+  call play_sound
 
   call pick_square
 

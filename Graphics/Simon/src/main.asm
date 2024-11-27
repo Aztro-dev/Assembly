@@ -17,6 +17,8 @@ _start:
 
 	mov  rdi, MAX_FPS
 	call SetTargetFPS
+
+	call init_sound
 	
 .draw_loop:
 	call WindowShouldClose
@@ -39,6 +41,8 @@ _start:
 	jmp  .draw_loop
 
 .exit_draw_loop:
+	call un_init_sound
+
 	call CloseWindow
 	mov  rdi, 0
 	call _exit
