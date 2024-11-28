@@ -1,6 +1,7 @@
 %define MAX_FPS 200
 
 %include "src/constants.asm"
+%include "src/strucs.asm"
 %include "src/utils.asm"
 %include "src/game.asm"
 %include "src/model.asm"

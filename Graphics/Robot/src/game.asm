@@ -1,9 +1,3 @@
-struc robot_struc
-  .model: resq 1 ; Model type
-  .position: resd 3 ; Vector3 (3 floats)
-  .heading: resd 1 ; float
-endstruc
-
 section .rodata
 scale dd 1.0
 tint dd WHITE
@@ -19,15 +13,16 @@ run_game:
 
 global draw_objects
 draw_objects:
-  mov rdi, qword[robot + robot_struc.model]
-  mov edx, dword[scale]
-  mov r8d, dword[tint]
-  movaps xmm0, [zeroes]
-  call DrawModel
+  push rbp
+  mov rbp, rsp
 
-  ; mov rdx, dword[robot + robot_struc.heading]
-  ; mov r8, 
-  
+  lea rdi, qword[robot + robot_struc.model]
+  mov rdx, [tint]
+  movaps xmm0, [zeroes]
+  movss xmm1, [scale]
+  ; call DrawModel
+
+  leave
   ret
 
 section .rodata
