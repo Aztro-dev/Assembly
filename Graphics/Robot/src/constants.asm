@@ -1,6 +1,8 @@
 %ifndef CONSTANTS
 %define CONSTANTS
 
+%define SYS_BRK 12
+
 %define SCREEN_WIDTH 800
 %define SCREEN_HEIGHT 800
 
@@ -30,6 +32,8 @@ extern CloseWindow
 extern BeginDrawing
 extern EndDrawing
 extern ClearBackground
+extern BeginMode3D
+extern EndMode3D
 
 extern LoadModel
 extern UnloadModel
@@ -53,5 +57,6 @@ extern DrawRectangle
 extern DrawRectangleLines
 extern DrawRectangleLinesEx
 extern DrawText
+extern DrawModel
 
 %endif
