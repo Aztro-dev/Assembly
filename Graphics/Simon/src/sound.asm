@@ -1,29 +1,44 @@
-section .bss
-; sound resd 2 + 2 + 1 + 1 + 1 + 1 
-sound resq 0x1
+section .data
+align 16
+sound resq 0x0
 
 section .text
 global init_sound
 init_sound:
+  push rbp
+  mov rbp, rsp
+
   call InitAudioDevice
 
-  mov rdi, sound_file
+  lea rdi, [sound]
+  mov rsi, sound_file
   call LoadSound
-  mov qword[sound], rax
+
+  leave
   ret
 
 global un_init_sound
 un_init_sound:
-  mov rdi, qword[sound]
+  push rbp
+  mov rbp, rsp
+
+  mov rdi, sound
   call UnloadSound
 
   call CloseAudioDevice
+
+  leave
   ret
 
 global play_sound
 play_sound:
-  mov rdi, qword[sound]
+  push rbp
+  mov rbp, rsp
+
+  mov rdi, [sound]
   call PlaySound
+
+  leave
   ret
 
 section .rodata
