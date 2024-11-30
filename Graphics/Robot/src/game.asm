@@ -1,4 +1,5 @@
 section .rodata
+align 16
 scale dd 1.0
 tint dd WHITE
 
@@ -16,11 +17,19 @@ draw_objects:
   push rbp
   mov rbp, rsp
 
-  lea rdi, qword[robot + robot_struc.model]
-  mov rdx, [tint]
+  mov rdi, qword[robot + robot_struc.model]
+  lea rsi, [zeroes]
+  movss xmm0, [scale]
+  lea rdx, [tint]
+  ; call DrawModel
+
   movaps xmm0, [zeroes]
   movss xmm1, [scale]
-  ; call DrawModel
+  movss xmm2, [scale]
+  movss xmm3, [scale]
+  mov r8, WHITE
+  mov rdi, WHITE
+  call DrawCube
 
   leave
   ret

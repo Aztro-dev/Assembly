@@ -58,5 +58,6 @@ extern DrawRectangleLines
 extern DrawRectangleLinesEx
 extern DrawText
 extern DrawModel
+extern DrawCube
 
 %endif

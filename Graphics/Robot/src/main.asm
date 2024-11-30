@@ -36,7 +36,7 @@ _start:
 	mov rdi, camera
 	call BeginMode3D
 
-	call draw_objects
+		call draw_objects
 
 	call EndMode3D
 
