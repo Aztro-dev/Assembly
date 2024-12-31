@@ -1,7 +1,6 @@
 .section .text
 .globl _start
 _start:
-
     addi a0, zero, 1 # stdout
 
     lui  a1, %hi(msg)
@@ -11,14 +10,13 @@ _start:
     addi a7, zero, 64 # _NR_sys_write
     ecall # invoke system call
 
-
     addi a0, zero, 0 # exit status
     addi a7, zero, 93 # _NR_sys_exit
     ecall # invoke system call
 
-.Loop:
-    j .Loop # in case exit syscall fails ...
+.loop:
+    j .loop # in case exit syscall fails ...
 
 .section .rodata
 msg:
-    .string "Hello World\n"
+    .ascii "Hello World\n"
