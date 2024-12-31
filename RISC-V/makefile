@@ -9,6 +9,8 @@ all: main.S
 	$(LD) $(LDFLAGS) main.o
 	chmod +x main
 	scp -O main root@192.168.42.1:/root/
+	rm main.o
+	rm main
 
 clean:
 	rm -f main.o
