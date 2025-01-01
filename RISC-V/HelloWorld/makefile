@@ -1,6 +1,6 @@
 TARGET = hello_world
 
-ASFLAGS = -march=rv64gcv -o main.o
+ASFLAGS = -march=rv64gcv
 LDFLAGS = 
 
 AS = riscv64-linux-gnu-as

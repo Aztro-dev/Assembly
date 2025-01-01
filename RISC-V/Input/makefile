@@ -1,4 +1,4 @@
-TARGET = hello_world
+TARGET = input
 
 ASFLAGS = -march=rv64gcv
 LDFLAGS = 
