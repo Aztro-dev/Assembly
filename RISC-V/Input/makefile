@@ -5,6 +5,10 @@ LDFLAGS =
 
 AS = riscv64-linux-gnu-as
 LD = riscv64-linux-gnu-ld
+ifeq ($(shell uname -s), Darwin)
+	AS = riscv64-unknown-linux-gnu-as
+	LD = riscv64-unknown-linux-gnu-ld
+endif
 
 SOURCE = $(wildcard *.S)
 OBJS = $(patsubst %.S,%.o,$(SOURCE))
