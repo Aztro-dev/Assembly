@@ -28,4 +28,4 @@ $(TARGET): $(OBJS)
 clean:
 	@rm -rf *.o
 	@rm -rf $(OBJS)
-	@rm $(TARGET)
+	@rm -rf $(TARGET)
