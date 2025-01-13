@@ -2,7 +2,7 @@
 .globl _start
 _start:
     # 0xBC614E = 12345678
-    lui a0, 0xBC6
+    lui a0, 0x000BC6
     addi a0, a0, 0x14E
     
     lui  a1, %hi(number_buffer)
