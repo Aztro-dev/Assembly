@@ -105,7 +105,7 @@ gpio:
     lui a2, %hi(one)
     addi a2, a2, %lo(one)
 
-    addi a3, zero, 1 # gpio pin str length
+    addi a3, zero, 2 # gpio pin str length
 
     ecall # invoke system call
 
@@ -172,8 +172,8 @@ gpio:
 # gpio_path
 gpio_path: .asciz "/sys/class/gpio/export"
 .fill 256 - 23, 1, 0
-gpio_pin_str: .asciz "29"
-new_gpio_path: .asciz "/sys/class/gpio/gpio480/direction"
+gpio_pin_str: .asciz "509"
+new_gpio_path: .asciz "/sys/class/gpio/gpio509/direction"
 .fill 256 - 34, 1, 0
 out: .asciz "out"
 unexport_gpio_path: .asciz "/sys/class/gpio/unexport"
