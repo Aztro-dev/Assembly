@@ -16,7 +16,7 @@ OBJS = $(patsubst %.S,%.o,$(SOURCE))
 $(TARGET): $(OBJS)
 	$(LD) $(LDFLAGS) -o $(TARGET) $<
 	chmod +x $(TARGET)
-	sudo scp -O $(TARGET) root@192.168.42.1:/root/
+	scp -O $(TARGET) root@192.168.42.1:/root/
 	@rm -rf *.o
 	@rm -rf $(OBJS)
 	@rm -rf $(TARGET)
