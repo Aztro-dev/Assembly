@@ -13,154 +13,154 @@ _start:
     j .loop # in case exit syscall fails ...
 
 gpio:
-    addi a0, zero, 430 # fsopen
-
-    lui  a1, %hi(gpio_path)
-    addi a1, a1, %lo(gpio_path)
-
-    ori a2, a2, 01 # O_WRONLY
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    add s0, zero, a0 # Store file descriptor
-
-    addi a0, zero, 64 # write
-    add a1, zero, s0  # file descriptor
-
-    lui a2, %hi(gpio_pin_str)
-    addi a2, a2, %lo(gpio_pin_str)
-
-    addi a3, zero, 4 # Length of gpio_pin_str
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    addi a0, zero, 57 # close
-    add a1, zero, s0
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    addi a0, zero, 430 # fsopen
-
-    lui a1, %hi(new_gpio_path)
-    addi a1, a1, %lo(new_gpio_path)
-
-    ori a2, a2, 01 # O_WRONLY
-
-    addi a3, zero, 33 # new_gpio_path length
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    add s0, zero, a0 # store file descriptor
-
-    addi a0, zero, 64 # write
-    add a1, zero, s0 # file descriptor
-
-    lui a2, %hi(out)
-    addi a2, a2, %lo(out)
-
-    addi a3, zero, 3 #out length
-
-    ecall #invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    addi a0, zero, 57 # close
-    add a1, zero, s0
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    addi a0, zero, 430 # fsopen
-
-    lui a1, %hi(value_gpio_path)
-    addi a1, a1, %lo(value_gpio_path)
-
-    ori a2, a2, 01 # O_WRONLY
-
-    addi a3, zero, 24 # value length
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    add s0, zero, a0 # store file descriptor
-
-    addi a0, zero, 64 # write
-    add a1, zero, s0 # file descriptor
-
-    lui a2, %hi(one)
-    addi a2, a2, %lo(one)
-
-    addi a3, zero, 2 # gpio pin str length
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    addi a0, zero, 57 # close
-    add a1, zero, s0
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-
-    addi a0, zero, 430 # fsopen
-
-    lui a1, %hi(unexport_gpio_path)
-    addi a1, a1, %lo(unexport_gpio_path)
-
-    ori a2, a2, 01 # O_WRONLY
-
-    addi a3, zero, 24 # unexport length
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    add s0, zero, a0 # store file descriptor
-
-    addi a0, zero, 64 # write
-    add a1, zero, s0 # file descriptor
-
-    lui a2, %hi(gpio_pin_str)
-    addi a2, a2, %lo(gpio_pin_str)
-
-    addi a3, zero, 4 # gpio pin str length
-
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    addi a0, zero, 57 # close
-    add a1, zero, s0
-    ecall # invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
-    ecall #invoke system call
-
-    addi t0, zero, -1
-    beq a0, t0, .error
-
+#    addi a0, zero, 430 # fsopen
+#
+#    lui  a1, %hi(gpio_path)
+#    addi a1, a1, %lo(gpio_path)
+#
+#    ori a2, a2, 01 # O_WRONLY
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    add s0, zero, a0 # Store file descriptor
+#
+#    addi a0, zero, 64 # write
+#    add a1, zero, s0  # file descriptor
+#
+#    lui a2, %hi(gpio_pin_str)
+#    addi a2, a2, %lo(gpio_pin_str)
+#
+#    addi a3, zero, 4 # Length of gpio_pin_str
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    addi a0, zero, 57 # close
+#    add a1, zero, s0
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    addi a0, zero, 430 # fsopen
+#
+#    lui a1, %hi(new_gpio_path)
+#    addi a1, a1, %lo(new_gpio_path)
+#
+#    ori a2, a2, 01 # O_WRONLY
+#
+#    addi a3, zero, 33 # new_gpio_path length
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    add s0, zero, a0 # store file descriptor
+#
+#    addi a0, zero, 64 # write
+#    add a1, zero, s0 # file descriptor
+#
+#    lui a2, %hi(out)
+#    addi a2, a2, %lo(out)
+#
+#    addi a3, zero, 3 #out length
+#
+#    ecall #invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    addi a0, zero, 57 # close
+#    add a1, zero, s0
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    addi a0, zero, 430 # fsopen
+#
+#    lui a1, %hi(value_gpio_path)
+#    addi a1, a1, %lo(value_gpio_path)
+#
+#    ori a2, a2, 01 # O_WRONLY
+#
+#    addi a3, zero, 24 # value length
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    add s0, zero, a0 # store file descriptor
+#
+#    addi a0, zero, 64 # write
+#    add a1, zero, s0 # file descriptor
+#
+#    lui a2, %hi(one)
+#    addi a2, a2, %lo(one)
+#
+#    addi a3, zero, 2 # gpio pin str length
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    addi a0, zero, 57 # close
+#    add a1, zero, s0
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#
+#    addi a0, zero, 430 # fsopen
+#
+#    lui a1, %hi(unexport_gpio_path)
+#    addi a1, a1, %lo(unexport_gpio_path)
+#
+#    ori a2, a2, 01 # O_WRONLY
+#
+#    addi a3, zero, 24 # unexport length
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    add s0, zero, a0 # store file descriptor
+#
+#    addi a0, zero, 64 # write
+#    add a1, zero, s0 # file descriptor
+#
+#    lui a2, %hi(gpio_pin_str)
+#    addi a2, a2, %lo(gpio_pin_str)
+#
+#    addi a3, zero, 4 # gpio pin str length
+#
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    addi a0, zero, 57 # close
+#    add a1, zero, s0
+#    ecall # invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
+#    ecall #invoke system call
+#
+#    addi t0, zero, -1
+#    beq a0, t0, .error
+#
     add a0, zero, zero
     jalr zero, ra, 0 # return
 
