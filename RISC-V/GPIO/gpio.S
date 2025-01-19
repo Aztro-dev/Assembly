@@ -1,9 +1,23 @@
 .set LED_PIN, 509
+.set LOOP_ITERATIONS, 10 
+.set DELAY_TIME, 500 # in msecs
+
+.set SYS_OPEN_AT, 56
+.set SYS_CLOSE, 57
+.set SYS_WRITE, 64
+.set SYS_NANOSLEEP, 101
+
+.set O_RDONLY, 0b00
+.set O_WRONLY, 0b01
+
+.set STDIN, 0
+.set STDOUT, 1
+.set STDERR, 2
 
 .section .text
 .globl _start
 _start:
-    call gpio
+    jal ra, gpio
 
     # a0 has exit status from gpio
     addi a7, zero, 93 # _NR_sys_exit
@@ -13,154 +27,119 @@ _start:
     j .loop # in case exit syscall fails ...
 
 gpio:
-#    addi a0, zero, 430 # fsopen
-#
-#    lui  a1, %hi(gpio_path)
-#    addi a1, a1, %lo(gpio_path)
-#
-#    ori a2, a2, 01 # O_WRONLY
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    add s0, zero, a0 # Store file descriptor
-#
-#    addi a0, zero, 64 # write
-#    add a1, zero, s0  # file descriptor
-#
-#    lui a2, %hi(gpio_pin_str)
-#    addi a2, a2, %lo(gpio_pin_str)
-#
-#    addi a3, zero, 4 # Length of gpio_pin_str
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    addi a0, zero, 57 # close
-#    add a1, zero, s0
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    addi a0, zero, 430 # fsopen
-#
-#    lui a1, %hi(new_gpio_path)
-#    addi a1, a1, %lo(new_gpio_path)
-#
-#    ori a2, a2, 01 # O_WRONLY
-#
-#    addi a3, zero, 33 # new_gpio_path length
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    add s0, zero, a0 # store file descriptor
-#
-#    addi a0, zero, 64 # write
-#    add a1, zero, s0 # file descriptor
-#
-#    lui a2, %hi(out)
-#    addi a2, a2, %lo(out)
-#
-#    addi a3, zero, 3 #out length
-#
-#    ecall #invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    addi a0, zero, 57 # close
-#    add a1, zero, s0
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    addi a0, zero, 430 # fsopen
-#
-#    lui a1, %hi(value_gpio_path)
-#    addi a1, a1, %lo(value_gpio_path)
-#
-#    ori a2, a2, 01 # O_WRONLY
-#
-#    addi a3, zero, 24 # value length
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    add s0, zero, a0 # store file descriptor
-#
-#    addi a0, zero, 64 # write
-#    add a1, zero, s0 # file descriptor
-#
-#    lui a2, %hi(one)
-#    addi a2, a2, %lo(one)
-#
-#    addi a3, zero, 2 # gpio pin str length
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    addi a0, zero, 57 # close
-#    add a1, zero, s0
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#
-#    addi a0, zero, 430 # fsopen
-#
-#    lui a1, %hi(unexport_gpio_path)
-#    addi a1, a1, %lo(unexport_gpio_path)
-#
-#    ori a2, a2, 01 # O_WRONLY
-#
-#    addi a3, zero, 24 # unexport length
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    add s0, zero, a0 # store file descriptor
-#
-#    addi a0, zero, 64 # write
-#    add a1, zero, s0 # file descriptor
-#
-#    lui a2, %hi(gpio_pin_str)
-#    addi a2, a2, %lo(gpio_pin_str)
-#
-#    addi a3, zero, 4 # gpio pin str length
-#
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    addi a0, zero, 57 # close
-#    add a1, zero, s0
-#    ecall # invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
-#    ecall #invoke system call
-#
-#    addi t0, zero, -1
-#    beq a0, t0, .error
-#
+    addi a7, zero, SYS_OPEN_AT
+    lui a1, %hi(export_path)
+    addi a1, a1, %lo(export_path)
+    addi a2, zero, O_WRONLY # umode_t
+
+    ecall # call FS_OPEN call
+
+    add s0, zero, a0 # store file descriptor
+
+    addi a7, zero, SYS_WRITE
+    # a0 = file descriptor
+    lui a1, %hi(export_pin_str)
+    addi a1, a1, %lo(export_pin_str)
+    addi a2, zero, %lo(export_pin_str_size)
+
+    ecall
+
+    addi a7, zero, SYS_CLOSE
+    add a0, zero, s0
+
+    ecall
+
+    addi a7, zero, SYS_OPEN_AT
+    lui a1, %hi(direction_path)
+    addi a1, a1, %lo(direction_path)
+    addi a2, zero, O_WRONLY # umode_t
+
+    ecall # call FS_OPEN call
+
+    add s0, zero, a0 # store file descriptor
+
+    addi a7, zero, SYS_WRITE
+    # a0 = file descriptor
+    lui a1, %hi(direction_str)
+    addi a1, a1, %lo(direction_str)
+    addi a2, zero, %lo(direction_str_size)
+
+    ecall
+
+    addi a7, zero, SYS_CLOSE
+    add a0, zero, s0
+
+    ecall
+
+    addi a7, zero, SYS_OPEN_AT
+    lui a1, %hi(value_path)
+    addi a1, a1, %lo(value_path)
+    addi a2, zero, O_WRONLY # umode_t
+
+    ecall # call FS_OPEN call
+
+    add s0, zero, a0 # store file descriptor
+
+    addi s1, zero, 0 # iterator
+    addi s2, zero, LOOP_ITERATIONS
+
+    .gpio_loop:
+    bge s1, s2, .exit_loop
+    addi s1, s1, 1
+
+    lui a1, %hi(value_str)
+    addi a1, a1, %lo(value_str)
+
+    lb t0, 0(a1)
+
+    xori t0, t0, 1 # toggle
+
+    sb t0, 0(a1)
+
+    addi a7, zero, SYS_WRITE
+    add a0, zero, s0 # file descriptor
+    lui a1, %hi(value_str)
+    addi a1, a1, %lo(value_str)
+    addi a2, zero, %lo(value_str_size)
+
+    ecall
+
+    addi sp, sp, -16  # allocate 16 bytes on stack
+    sw   ra, 12(sp)   # store return address on stack
+
+    addi a0, zero, DELAY_TIME
+    jal ra, nanosleep
+
+    lw   ra, 12(sp)  # load return address from stack
+    addi sp, sp, 16  # restore stack pointer
+
+    j .gpio_loop
+
+    .exit_loop:
+
+    addi a7, zero, SYS_CLOSE
+    add a0, zero, s0
+
+    addi a7, zero, SYS_OPEN_AT
+    lui a1, %hi(unexport_path)
+    addi a1, a1, %lo(unexport_path)
+    addi a2, zero, O_WRONLY # umode_t
+
+    ecall # call FS_OPEN call
+
+    add s0, zero, a0 # store file descriptor
+
+    addi a7, zero, SYS_WRITE
+    # a0 = file descriptor
+    lui a1, %hi(unexport_pin_str)
+    addi a1, a1, %lo(unexport_pin_str)
+    addi a2, zero, %lo(unexport_pin_str_size)
+
+    ecall
+
+    addi a7, zero, SYS_CLOSE
+    add a0, zero, s0
+
     add a0, zero, zero
     jalr zero, ra, 0 # return
 
@@ -168,16 +147,69 @@ gpio:
     addi a0, zero, 1
     jalr zero, ra, 0 # return
 
+nanosleep:
+    addi t0, zero, 1000 # for division (msec / 1000)
+    # for division (msec / 1000) * 1000000
+    lui t1, %hi(1000000)
+    addi t1, t1, %lo(1000000)
+
+    add t2, zero, a0 # msec
+
+    divu t3, t2, t0 # t3 = sec
+    
+    remu t4, t2, t0 # t4 = msec % 1000
+    mul t4, t4, t1 # t4 = t4 * 1000000
+
+    lui t5, %hi(ts)
+    addi t5, t5, %lo(ts)
+
+    sd t3, 0(t5) # timespec.tv_sec = t3 (aka sec)
+    
+    lui t5, %hi(ts + 8)
+    addi t5, t5, %lo(ts + 8)
+
+    sd t4, 0(t5) # timespec.tv_nsec = t4 (aka nsec)
+
+    .nanosleep_loop:
+        addi a7, zero, SYS_NANOSLEEP
+        lui a0, %hi(ts)
+        addi a0, a0, %lo(ts)
+        add a1, zero, a0
+        ecall # a0 = res
+
+        beq a0, zero, .exit_nanosleep_loop
+
+        j .nanosleep_loop
+
+    .exit_nanosleep_loop:
+
+    jalr zero, ra, 0 # return
+
 .section .data
-# gpio_path
-gpio_path: .asciz "/sys/class/gpio/export"
-.fill 256 - 23, 1, 0
-gpio_pin_str: .asciz "509"
-new_gpio_path: .asciz "/sys/class/gpio/gpio509/direction"
-.fill 256 - 34, 1, 0
-out: .asciz "out"
-unexport_gpio_path: .asciz "/sys/class/gpio/unexport"
-.fill 256 - 25, 1, 0
-value_gpio_path: .asciz "/sys/class/gpio509/value"
-.fill 256 - 25, 1, 0
-one: .asciz "0"
+.align 8
+export_path: .asciz "/sys/class/gpio/export"
+export_pin_str: .ascii "509"
+export_pin_str_size = . - export_pin_str
+
+direction_path: .asciz "/sys/class/gpio/gpio509/direction"
+direction_str: .ascii "out"
+direction_str_size = . - direction_str
+
+value_path: .asciz "/sys/class/gpio/gpio509/value"
+value_str: .ascii "0"
+value_str_size = . - value_str
+
+unexport_path: .asciz "/sys/class/gpio/unexport"
+unexport_pin_str: .ascii "509"
+unexport_pin_str_size = . - unexport_pin_str
+
+.struct 0
+timespec:
+timespec.tv_sec:
+.space 8
+timespec.tv_nsec:
+.space 8
+timespec.size = . - timespec
+
+.section .bss
+ts: .space(timespec.size)
