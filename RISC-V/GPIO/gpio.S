@@ -28,12 +28,16 @@ _start:
     j .loop # in case exit syscall fails ...
 
 gpio:
+    addi s7, zero, -1 # for error checking
+
     addi a7, zero, SYS_OPEN_AT
     lui a1, %hi(export_path)
     addi a1, a1, %lo(export_path)
     addi a2, zero, O_WRONLY # umode_t
 
-    ecall # call FS_OPEN call
+    ecall # call OPEN_AT syscall
+
+    beq a0, s7, gpio.error
 
     add s0, zero, a0 # store file descriptor
 
@@ -55,7 +59,7 @@ gpio:
     addi a1, a1, %lo(direction_path)
     addi a2, zero, O_WRONLY # umode_t
 
-    ecall # call FS_OPEN call
+    ecall # call OPEN_AT syscall
 
     add s0, zero, a0 # store file descriptor
 
@@ -77,15 +81,15 @@ gpio:
     addi a1, a1, %lo(value_path)
     addi a2, zero, O_WRONLY # umode_t
 
-    ecall # call FS_OPEN call
+    ecall # call OPEN_AT syscall
 
     add s0, zero, a0 # store file descriptor
 
     addi s1, zero, 0 # iterator
     addi s2, zero, LOOP_ITERATIONS
 
-    .gpio_loop:
-    bge s1, s2, .exit_loop
+    gpio.loop:
+    bge s1, s2, gpio.exit_loop
     addi s1, s1, 1
 
     lui a1, %hi(value_str)
@@ -114,9 +118,9 @@ gpio:
     lw   ra, 12(sp)  # load return address from stack
     addi sp, sp, 16  # restore stack pointer
 
-    j .gpio_loop
+    j gpio.loop
 
-    .exit_loop:
+    gpio.exit_loop:
 
     addi a7, zero, SYS_CLOSE
     add a0, zero, s0
@@ -126,7 +130,7 @@ gpio:
     addi a1, a1, %lo(unexport_path)
     addi a2, zero, O_WRONLY # umode_t
 
-    ecall # call FS_OPEN call
+    ecall # call OPEN_AT syscall
 
     add s0, zero, a0 # store file descriptor
 
@@ -144,7 +148,7 @@ gpio:
     add a0, zero, zero
     jalr zero, ra, 0 # return
 
-    .error:
+    gpio.error:
     addi a0, zero, 1
     jalr zero, ra, 0 # return
 
@@ -171,18 +175,18 @@ nanosleep:
 
     sd t4, 0(t5) # timespec.tv_nsec = t4 (aka nsec)
 
-    .nanosleep_loop:
+    nanosleep.loop:
         addi a7, zero, SYS_NANOSLEEP
         lui a0, %hi(ts)
         addi a0, a0, %lo(ts)
         add a1, zero, a0
         ecall # a0 = res
 
-        beq a0, zero, .exit_nanosleep_loop
+        beq a0, zero, nanosleep.exit_loop
 
-        j .nanosleep_loop
+        j nanosleep.loop
 
-    .exit_nanosleep_loop:
+    nanosleep.exit_loop:
 
     jalr zero, ra, 0 # return
 
