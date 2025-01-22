@@ -49,10 +49,14 @@ gpio:
 
     ecall
 
+    beq a0, s7, gpio.error
+
     addi a7, zero, SYS_CLOSE
     add a0, zero, s0
 
     ecall
+
+    beq a0, s7, gpio.error
 
     addi a7, zero, SYS_OPEN_AT
     lui a1, %hi(direction_path)
@@ -60,6 +64,8 @@ gpio:
     addi a2, zero, O_WRONLY # umode_t
 
     ecall # call OPEN_AT syscall
+
+    beq a0, s7, gpio.error
 
     add s0, zero, a0 # store file descriptor
 
@@ -71,10 +77,14 @@ gpio:
 
     ecall
 
+    beq a0, s7, gpio.error
+
     addi a7, zero, SYS_CLOSE
     add a0, zero, s0
 
     ecall
+
+    beq a0, s7, gpio.error
 
     addi a7, zero, SYS_OPEN_AT
     lui a1, %hi(value_path)
@@ -82,6 +92,8 @@ gpio:
     addi a2, zero, O_WRONLY # umode_t
 
     ecall # call OPEN_AT syscall
+
+    beq a0, s7, gpio.error
 
     add s0, zero, a0 # store file descriptor
 
@@ -109,6 +121,8 @@ gpio:
 
     ecall
 
+    beq a0, s7, gpio.error
+
     addi sp, sp, -16  # allocate 16 bytes on stack
     sw   ra, 12(sp)   # store return address on stack
 
@@ -132,6 +146,8 @@ gpio:
 
     ecall # call OPEN_AT syscall
 
+    beq a0, s7, gpio.error
+
     add s0, zero, a0 # store file descriptor
 
     addi a7, zero, SYS_WRITE
@@ -142,6 +158,8 @@ gpio:
 
     ecall
 
+    beq a0, s7, gpio.error
+
     addi a7, zero, SYS_CLOSE
     add a0, zero, s0
 
@@ -149,7 +167,7 @@ gpio:
     jalr zero, ra, 0 # return
 
     gpio.error:
-    addi a0, zero, 1
+    addi a0, zero, -1
     jalr zero, ra, 0 # return
 
 nanosleep:
