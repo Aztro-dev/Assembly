@@ -1,16 +1,17 @@
-.set LED_PIN, 509
-.set LOOP_ITERATIONS, 10 
-.set DELAY_TIME, 500 # in msecs
+.set LED_PIN,           509
+.set LOOP_ITERATIONS,   10 
+.set DELAY_TIME,        500 # in msecs
 
-.set SYS_OPEN_AT, 56
-.set SYS_CLOSE, 57
-.set SYS_WRITE, 64
+.set SYS_OPEN_AT,   56
+.set SYS_CLOSE,     57
+.set SYS_WRITE,     64
 .set SYS_NANOSLEEP, 101
 
 .set O_RDONLY, 0b00
 .set O_WRONLY, 0b01
+.set O_RDWR,   0b10
 
-.set STDIN, 0
+.set STDIN,  0
 .set STDOUT, 1
 .set STDERR, 2
 
