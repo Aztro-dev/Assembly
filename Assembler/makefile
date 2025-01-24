@@ -1,6 +1,26 @@
-compile:
-  @nasm -f elf64 template.asm
-  @ld template.o -o main
+TARGET = main
+
+ASFLAGS = -f elf64
+LDFLAGS = -arch x86_64
+
+AS = nasm
+LD = ld
+
+SOURCE = $(wildcard *.asm)
+OBJS = $(patsubst %.asm,%.o,$(SOURCE))
+
+BUILD_DIR = $(./build/)
+
+$(BUILD_DIR)$(TARGET): $(BUILD_DIR)$(OBJS)
+	$(LD) $(LDFLAGS) -o $(BUILD_DIR)$(TARGET) $(BUILD_DIR)$<
+	@rm -rf *.o
+	@rm -rf $(OBJS)
+
+$(BUILD_DIR)%.o: %.asm
+	$(AS) $(ASFLAGS) -o $(BUILD_DIR)$@ $<
+
+.PHONY: clean
 clean:
-  @rm -f template.o
-  @rm -f main
+	@rm -rf *.o
+	@rm -rf $(OBJS)
+	@rm -rf $(TARGET)
