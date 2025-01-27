@@ -6,4 +6,3 @@ _start:
   mov rax, SYS_EXIT
   mov rdi, 0x0
   syscall
-  ret
