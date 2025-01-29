@@ -1,10 +1,10 @@
-.set INPUT_PIN,           509
+.set INPUT_PIN,         468
 .set LOOP_ITERATIONS,   10 
 .set DELAY_TIME,        500 # in msecs
 
 .set SYS_OPEN_AT,   56
 .set SYS_CLOSE,     57
-.set SYS_WRITE,     64
+.set SYS_READ,      63
 .set SYS_NANOSLEEP, 101
 
 .set O_RDONLY, 0b00
@@ -211,19 +211,19 @@ nanosleep:
 .section .data
 .align 8
 export_path: .asciz "/sys/class/gpio/export"
-export_pin_str: .ascii "509"
+export_pin_str: .ascii "468"
 export_pin_str_size = . - export_pin_str
 
-direction_path: .asciz "/sys/class/gpio/gpio509/direction"
+direction_path: .asciz "/sys/class/gpio/gpio468/direction"
 direction_str: .ascii "out"
 direction_str_size = . - direction_str
 
-value_path: .asciz "/sys/class/gpio/gpio509/value"
+value_path: .asciz "/sys/class/gpio/gpio468/value"
 value_str: .ascii "0"
 value_str_size = . - value_str
 
 unexport_path: .asciz "/sys/class/gpio/unexport"
-unexport_pin_str: .ascii "509"
+unexport_pin_str: .ascii "468"
 unexport_pin_str_size = . - unexport_pin_str
 
 .struct 0
