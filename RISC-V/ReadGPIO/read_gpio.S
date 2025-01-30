@@ -89,7 +89,7 @@ gpio:
     addi a7, zero, SYS_OPEN_AT
     lui a1, %hi(value_path)
     addi a1, a1, %lo(value_path)
-    addi a2, zero, O_WRONLY # umode_t
+    addi a2, zero, O_RDONLY # umode_t
 
     ecall # call OPEN_AT syscall
 
