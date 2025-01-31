@@ -1,6 +1,6 @@
 .set INPUT_PIN,         468
 .set LOOP_ITERATIONS,   10 
-.set DELAY_TIME,        500 # in msecs
+.set DELAY_TIME,        100 # in msecs
 
 .set SYS_OPEN_AT,   56
 .set SYS_CLOSE,     57
