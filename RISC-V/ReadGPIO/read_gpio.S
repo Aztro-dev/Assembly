@@ -5,6 +5,7 @@
 .set SYS_OPEN_AT,   56
 .set SYS_CLOSE,     57
 .set SYS_READ,      63
+.set SYS_WRITE,     64
 .set SYS_NANOSLEEP, 101
 
 .set O_RDONLY, 0b00
@@ -104,20 +105,19 @@ gpio:
     bge s1, s2, gpio.exit_loop
     addi s1, s1, 1
 
-    lui a1, %hi(value_str)
-    addi a1, a1, %lo(value_str)
+    addi a7, zero, SYS_READ
+    add a0, zero, s0 # file descriptor
+    lui a1, %hi(value_buf)
+    addi a1, a1, %lo(value_buf)
+    addi a2, zero, %lo(value_buf_size)
 
-    lb t0, 0(a1)
-
-    xori t0, t0, 1 # toggle
-
-    sb t0, 0(a1)
+    ecall
 
     addi a7, zero, SYS_WRITE
-    add a0, zero, s0 # file descriptor
-    lui a1, %hi(value_str)
-    addi a1, a1, %lo(value_str)
-    addi a2, zero, %lo(value_str_size)
+    addi a0, zero, STDOUT
+    lui a1, %hi(value_buf)
+    addi a1, a1, %lo(value_buf)
+    addi a2, zero, %lo(value_buf_size - 1)
 
     ecall
 
@@ -126,8 +126,7 @@ gpio:
     addi sp, sp, -16  # allocate 16 bytes on stack
     sw   ra, 12(sp)   # store return address on stack
 
-    addi a0, zero, DELAY_TIME
-    jal ra, nanosleep
+    jal ra, wait_for_input
 
     lw   ra, 12(sp)  # load return address from stack
     addi sp, sp, 16  # restore stack pointer
@@ -170,13 +169,13 @@ gpio:
     addi a0, zero, -1
     jalr zero, ra, 0 # return
 
-nanosleep:
+wait_for_input:
     addi t0, zero, 1000 # for division (msec / 1000)
     # for division (msec / 1000) * 1000000
     lui t1, %hi(1000000)
     addi t1, t1, %lo(1000000)
 
-    add t2, zero, a0 # msec
+    addi t2, zero, DELAY_TIME # msec
 
     divu t3, t2, t0 # t3 = sec
     
@@ -193,18 +192,25 @@ nanosleep:
 
     sd t4, 0(t5) # timespec.tv_nsec = t4 (aka nsec)
 
-    nanosleep.loop:
+    wait_for_input.loop:
         addi a7, zero, SYS_NANOSLEEP
         lui a0, %hi(ts)
         addi a0, a0, %lo(ts)
         add a1, zero, a0
         ecall # a0 = res
 
-        beq a0, zero, nanosleep.exit_loop
+        beq a0, zero, wait_for_input.exit_loop
 
-        j nanosleep.loop
+        j wait_for_input.loop
 
-    nanosleep.exit_loop:
+    wait_for_input.exit_loop:
+
+    addi a7, zero, SYS_READ
+    addi a0, zero, STDIN
+    lui a1, %hi(trash_can_buf)
+    addi a1, a1, %lo(trash_can_buf)
+    addi a2, zero, 0x1 # 1 byte of data
+    ecall
 
     jalr zero, ra, 0 # return
 
@@ -215,16 +221,18 @@ export_pin_str: .ascii "468"
 export_pin_str_size = . - export_pin_str
 
 direction_path: .asciz "/sys/class/gpio/gpio468/direction"
-direction_str: .ascii "out"
+direction_str: .ascii "in"
 direction_str_size = . - direction_str
 
 value_path: .asciz "/sys/class/gpio/gpio468/value"
-value_str: .ascii "0"
-value_str_size = . - value_str
+value_buf: .space(2) # 1 or 0
+value_buf_size = . - value_buf
 
 unexport_path: .asciz "/sys/class/gpio/unexport"
 unexport_pin_str: .ascii "468"
 unexport_pin_str_size = . - unexport_pin_str
+
+trash_can_buf: .zero
 
 .struct 0
 timespec:

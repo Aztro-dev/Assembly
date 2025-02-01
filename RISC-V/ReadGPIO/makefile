@@ -1,4 +1,4 @@
-TARGET = gpio
+TARGET = read_gpio
 
 ASFLAGS = -march=rv64gcv
 LDFLAGS = 
