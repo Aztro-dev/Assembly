@@ -5,6 +5,7 @@
 .set SYS_OPEN_AT,   56
 .set SYS_CLOSE,     57
 .set SYS_WRITE,     64
+.set SYS_EXIT,      93
 .set SYS_NANOSLEEP, 101
 
 .set O_RDONLY, 0b00
@@ -21,7 +22,7 @@ _start:
     jal ra, gpio
 
     # a0 has exit status from gpio
-    addi a7, zero, 93 # _NR_sys_exit
+    addi a7, zero, SYS_EXIT
     ecall # invoke system call
 
 .loop:
