@@ -34,10 +34,11 @@ _start:
     j .loop # in case exit syscall fails ...
 
 atoi:
+    # a0 contains bytes to be read
     lui t0, %hi(input)
     addi t0, t0, %lo(input) # pointer
 
-    add t1, t0, a0
+    add t1, t0, a0 # ending memory address
 
     atoi.loop:
         bge t0, t1, atoi.exit_loop
