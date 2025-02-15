@@ -21,6 +21,3 @@ _main:
 .align 4
 input:
   .space 10          // Allocate 10 bytes for the input buffer
-
-bruh:
-  .ascii "Bruh\n"
