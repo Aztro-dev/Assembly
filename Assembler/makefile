@@ -1,17 +1,25 @@
 TARGET = main
 
+SRC=src
+BUILD=build
+
+SRCS=$(wildcard $(SRC)/*.asm)
+OBJS=$(SRCS:$(SRC)/%.asm=$(BUILD)/%.o)
+
 AS = nasm
 LD = ld
 
-AS_FLAGS = -o build/$(TARGET).o -f elf64
-LD_FLAGS = -o build/$(TARGET)
+AS_FLAGS = -f elf64
+LD_FLAGS = -o $(BUILD)/$(TARGET)
 
-all:
-	$(AS) $(AS_FLAGS) src/$(TARGET).asm
-	$(LD) $(LD_FLAGS) build/$(TARGET).o
+
+all: $(OBJS)
+	@# $(LD) $(LD_FLAGS) $^
+
+$(BUILD)/%.o: $(SRC)/%.asm
+	$(AS) $(AS_FLAGS) -o $@ $^
 
 .PHONY: clean
 clean:
-	@rm -rf *.o
-	@rm -rf $(OBJS)
+	@rm -rf $(BUILD)/*
 	@rm -rf $(TARGET)
