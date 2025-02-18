@@ -1,3 +1,5 @@
+%ifndef ELF_ASM
+%define ELF_ASM
 ; ---------- Elf Header (Ehdr) ----------
 
 ; --- e_ident ---
@@ -151,3 +153,5 @@ struc ElfN_Phdr
   .p_memsz  resq 1 ; uint64_t
   .p_align  resq 1 ; uint64_t
 endstruc
+
+%endif

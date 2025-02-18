@@ -11,6 +11,8 @@
 %define O_RDWR   02
 
 section .text
+%ifndef FILE_ASM
+%define FILE_ASM
 global open_file
 ; file path specified in rdi
 ; file descriptor returned to rax
@@ -48,3 +50,4 @@ get_file_size:
 
   ; file size stored in rax in bytes
   ret
+%endif

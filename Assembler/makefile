@@ -14,7 +14,9 @@ LD_FLAGS = -o $(BUILD)/$(TARGET)
 
 
 all: $(OBJS)
-	$(LD) $(LD_FLAGS) $(BUILD)/main.o
+	$(LD) $(LD_FLAGS) $^
+
+compile: $(OBJS)
 
 $(BUILD)/%.o: $(SRC)/%.asm
 	$(AS) $(AS_FLAGS) -o $@ $^
