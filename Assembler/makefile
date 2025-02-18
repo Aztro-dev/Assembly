@@ -13,10 +13,10 @@ AS_FLAGS = -f elf64
 LD_FLAGS = -o $(BUILD)/$(TARGET)
 
 
-all: $(BUILD)/main.o
-	$(LD) $(LD_FLAGS) $^
+all: $(OBJS)
+	$(LD) $(LD_FLAGS) $(BUILD)/main.o
 
-$(BUILD)/main.o: $(SRC)/main.asm
+$(BUILD)/%.o: $(SRC)/%.asm
 	$(AS) $(AS_FLAGS) -o $@ $^
 
 .PHONY: clean
