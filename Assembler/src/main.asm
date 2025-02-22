@@ -1,5 +1,7 @@
 %define SYS_READ  0
 %define SYS_WRITE 1
+%define SYS_OPEN  2
+%define SYS_CLOSE 3
 %define SYS_BRK   12
 %define SYS_EXIT  60
 
@@ -7,13 +9,11 @@
 %define STDOUT 1
 %define STDERR 2
 
-%include "src/elf.asm"
-%include "src/file.asm"
-
 section .text
 global _start
 _start:
   mov rdi, [rsp + 2 * 0x8] ; argv[1]
+  extern open_file
   call open_file
 
   mov qword[file_fd], rax
@@ -25,6 +25,7 @@ _start:
   mov qword[buf], rax
 
   mov rdi, qword[file_fd]
+  extern get_file_size
   call get_file_size
 
   mov qword[buf_size], rax
@@ -41,8 +42,19 @@ _start:
   mov rdx, qword[buf_size]
   syscall
 
+  mov rax, SYS_CLOSE
+  mov rdi, qword[file_fd]
+  syscall
+
+  mov rdi, file_path
+  extern create_file
+  call create_file
+
+  mov qword[file_fd], rax
+
+  ; rdi = file descriptor of file
+  mov rdi, rax
   mov rax, SYS_WRITE
-  mov rdi, STDOUT
   mov rsi, qword[buf]
   mov rdx, qword[buf_size]
   syscall
@@ -56,6 +68,7 @@ _start:
   syscall
 
 section .rodata
+file_path: db "./a.out", 0x0
 
 section .bss
 file_fd: resq 1
