@@ -31,7 +31,7 @@ global open_file
 ; file descriptor returned to rax
 open_file:
   mov rax, SYS_OPEN
-  ; rdi
+  ; rdi is the file path
   mov rsi, O_RDONLY
   xor rdx, rdx ; No mode_t
   syscall
@@ -45,7 +45,7 @@ global get_file_size
 get_file_size:
   ; Calculate the offset from the file pointer to the end of the file
   mov rax, SYS_LSEEK
-  ; rdi
+  ; rdi is the file path
   mov rsi, 0
   mov rdx, SEEK_END
   syscall
@@ -54,7 +54,7 @@ get_file_size:
 
   ; Reset file pointer to beginning of file so we can read from it
   mov rax, SYS_LSEEK
-  ; rdi
+  ; rdi is the file path
   mov rsi, 0
   mov rdx, SEEK_SET
   syscall
