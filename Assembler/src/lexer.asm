@@ -23,13 +23,18 @@
   %define LH      12
   %define LHU     13
   %define LW      14
+  %define LWU     15
+  %define LD      16
 
-  %define SB      15
-  %define SH      16
-  %define SW      17
+  %define SB      17
+  %define SH      18
+  %define SW      19
+  %define SP      20
 
   %define ADD     18
   %define ADDI    19
+  %define ADDW    18
+  %define ADDIW   19
   %define SUB     20
   %define SLL     21
   %define SLLI    22
@@ -61,8 +66,12 @@
 %define OPERATOR  3
 %endif
 
-%ifndef LTIERAL
+%ifndef LITERAL
 %define LITERAL   4
+%endif
+
+%ifndef ENDLINE
+%define ENDLINE   5
 %endif
 
 ; Comments and whitespace will simply not be included
