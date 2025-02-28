@@ -8,7 +8,7 @@ clean:
 	rm -r build/*
 
 run: main
-	./build/main
+	@./build/main
 
 check_size: src/main.asm
 	nasm -E src/main.asm -o build/processed.asm
