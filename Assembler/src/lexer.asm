@@ -5,57 +5,57 @@
 %ifndef KEYWORDS
 %define KEYWORDS  1
 
-  %define LUI     0
-  %define AUIPC   1
+%define LUI     0
+%define AUIPC   1
 
-  %define JAL     2
-  %define JALR    3
+%define JAL     2
+%define JALR    3
 
-  %define BEQ     4
-  %define BNE     5
-  %define BLT     6
-  %define BLTU    7
-  %define BGT     8
-  %define BGTU    9
+%define BEQ     4
+%define BNE     5
+%define BLT     6
+%define BLTU    7
+%define BGT     8
+%define BGTU    9
 
-  %define LB      10
-  %define LBU     11
-  %define LH      12
-  %define LHU     13
-  %define LW      14
-  %define LWU     15
-  %define LD      16
+%define LB      10
+%define LBU     11
+%define LH      12
+%define LHU     13
+%define LW      14
+%define LWU     15
+%define LD      16
 
-  %define SB      17
-  %define SH      18
-  %define SW      19
-  %define SP      20
+%define SB      17
+%define SH      18
+%define SW      19
+%define SP      20
 
-  %define ADD     18
-  %define ADDI    19
-  %define ADDW    18
-  %define ADDIW   19
-  %define SUB     20
-  %define SLL     21
-  %define SLLI    22
-  %define SRL     23
-  %define SRLI    24
-  %define SRA     25
-  %define SRAI    26
-  %define AND     27
-  %define ANDI    28
-  %define XOR     29
-  %define XORI    30
-  %define OR      31
-  %define ORI     32
+%define ADD     20
+%define ADDI    21
+%define ADDW    22
+%define ADDIW   23
+%define SUB     24
+%define SLL     25
+%define SLLI    26
+%define SRL     27
+%define SRLI    28
+%define SRA     29
+%define SRAI    30
+%define AND     31
+%define ANDI    32
+%define XOR     33
+%define XORI    34
+%define OR      35
+%define ORI     36
 
-  %define SLT     33
-  %define SLTU    34
-  %define SLTI    35
-  %define SLTIU   36
+%define SLT     38
+%define SLTU    39
+%define SLTI    40
+%define SLTIU   41
 
-  %define FENCE   37
-  %define FENCE.I 38
+%define FENCE   42
+%define FENCE.I 43
 %endif
 
 %ifndef SEPARATOR
@@ -74,4 +74,4 @@
 %define ENDLINE   5
 %endif
 
-; Comments and whitespace will simply not be included
+	; Comments and whitespace will not be included
