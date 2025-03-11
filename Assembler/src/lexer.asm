@@ -74,4 +74,85 @@
 %define ENDLINE   5
 %endif
 
-	; Comments and whitespace will not be included
+%ifndef EOF
+%define EOF       6
+%endif
+
+struc token
+  .contents   resq 1 ; "*", "func", ".", etc.
+  .token_type resb 1 ; Identifier, Keyword, Separator, etc.
+  .padding    resb 3
+endstruc
+
+%define SYS_READ  0
+%define SYS_WRITE 1
+%define SYS_OPEN  2
+%define SYS_CLOSE 3
+%define SYS_BRK   12
+%define SYS_EXIT  60
+
+%define STDIN  0
+%define STDOUT 1
+%define STDERR 2
+
+section .text
+global  print_tokens
+
+print_tokens:
+  mov rsi, qword[tokens]
+  mov rdx, qword[token_output]
+  .loop:
+    cmp qword[rsi + token.token_type], EOF
+    je .exit_loop ; end of array
+
+    mov rax, qword[rsi + token.contents]
+    mov rdi, qword[rsi + token.token_type]
+    add rsi, token_size
+
+    .check_identifier:
+    cmp rdi, IDENTIFIER
+    jne .check_keyword
+
+    mov rdi, identifier
+    call concat_str
+    
+    jmp .add_contents
+
+    .check_keyword:
+
+    .add_contents:
+    mov byte[rdx], ','
+    inc rdx
+
+    mov r8, rax
+    .contents_loop:
+      cmp byte[r8], 0x0
+      je .exit_contents_loop
+
+      mov bl, byte[r8]
+      mov byte[rdx], bl
+
+      inc rdx
+      inc r8
+      jmp .contents_loop
+    
+    .exit_contents_loop:
+    
+    mov byte[rdx], 0x0a ; newline
+    inc rdx
+    jmp .loop
+  .exit_loop:
+  mov r15, qword[token_output]
+  sub r15, rdx
+
+  mov rax, SYS_WRITE
+  mov rdi, STDOUT
+  mov rsi, rdx
+  mov rdx, r15
+	ret
+
+section .bss
+; A string representing the tokens and their contents
+token_output resq 1
+; An array of `token` structs
+tokens  resq 1
