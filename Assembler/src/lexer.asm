@@ -127,9 +127,86 @@ print_tokens:
     call concat_str_nomalloc
     pop rsi
     
-    jmp .add_contents
+    ; jmp .add_contents
+    jmp .exit_contents_loop
 
     .check_keyword:
+    cmp rdi, KEYWORDS
+    jne .check_separator
+
+    mov rdi, keyword
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
+    
+    ; jmp .add_contents
+    jmp .exit_contents_loop
+
+    .check_separator:
+    cmp rdi, SEPARATOR
+    jne .check_operator
+
+    mov rdi, separator
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
+    
+    ; jmp .add_contents
+    jmp .exit_contents_loop
+
+    .check_operator:
+    cmp rdi, OPERATOR
+    jne .check_literal
+
+    mov rdi, operator
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
+    
+    ; jmp .add_contents
+    jmp .exit_contents_loop
+
+    .check_literal:
+    cmp rdi, LITERAL
+    jne .check_endline
+
+    mov rdi, literal
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
+    
+    ; jmp .add_contents
+    jmp .exit_contents_loop
+
+    .check_endline:
+    cmp rdi, ENDLINE
+    jne .check_eof
+
+    mov rdi, endline
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
+    
+    ; jmp .add_contents
+    jmp .exit_contents_loop
+
+    .check_eof:
+    cmp rdi, EOF
+    jne .error
+
+    mov rdi, eof
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
+    
+    ; jmp .add_contents
+    jmp .exit_contents_loop
 
     .add_contents:
     mov byte[rdx], ','
@@ -160,6 +237,10 @@ print_tokens:
   mov rdi, STDOUT
   mov rsi, rdx
   mov rdx, r15
+  syscall
+  .error:
+  mov rax, SYS_EXIT
+  mov rdi, -1
   syscall
   ret
 
