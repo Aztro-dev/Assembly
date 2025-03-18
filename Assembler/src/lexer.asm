@@ -95,6 +95,8 @@ endstruc
 %define STDOUT 1
 %define STDERR 2
 
+extern concat_str_nomalloc
+
 section .text
 global  print_tokens
 
@@ -114,7 +116,10 @@ print_tokens:
     jne .check_keyword
 
     mov rdi, identifier
-    call concat_str
+    push rsi
+    mov rsi, rdx
+    call concat_str_nomalloc
+    pop rsi
     
     jmp .add_contents
 
@@ -149,10 +154,14 @@ print_tokens:
   mov rdi, STDOUT
   mov rsi, rdx
   mov rdx, r15
-	ret
+  syscall
+  ret
 
 section .bss
 ; A string representing the tokens and their contents
 token_output resq 1
 ; An array of `token` structs
 tokens  resq 1
+
+section .rodata
+identifier db "identifier"
