@@ -1,3 +1,5 @@
+%define SYS_BRK 12
+
 section .text
 global concat_str
 ; rdi = firststr
@@ -35,4 +37,26 @@ concat_str_nomalloc:
   pop rsi
   pop rdi
   sub rax, rdi
+  ret
+
+global malloc
+; rdi = amount of elements
+; rsi = number of bytes per element (sizeof element)
+; output rax = pointer to allocated data
+malloc:
+  mov rax, rdi
+  mul rsi
+  mov r8, rax
+
+  mov rax, SYS_BRK
+  mov rdi, 0x0
+  syscall
+  push rax ; top of the heap (currently)
+
+  mov rdi, rax
+  add rdi, r8
+  mov rax, SYS_BRK
+  syscall
+  
+  pop rax
   ret

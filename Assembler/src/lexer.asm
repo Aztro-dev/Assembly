@@ -96,11 +96,17 @@ endstruc
 %define STDERR 2
 
 extern concat_str_nomalloc
+extern malloc
 
 section .text
 global  print_tokens
 
 print_tokens:
+  mov rdi, 1000 ; elements
+  mov rsi, 1    ; bytes per element
+  call malloc
+  mov qword[token_output], rax
+
   mov rsi, qword[tokens]
   mov rdx, qword[token_output]
   .loop:
@@ -164,4 +170,17 @@ token_output resq 1
 tokens  resq 1
 
 section .rodata
-identifier db "identifier"
+identifier  db "identifier", 0x0
+identifier_len equ $ - identifier
+keyword     db "keyword", 0x0
+keyword_len equ $ - keyword
+separator   db "separator", 0x0
+separator_len equ $ - separator
+operator    db "operator", 0x0
+operator_len equ $ - operator
+literal     db "literal", 0x0
+literal_len equ $ - literal
+endline     db "endline", 0x0
+endline_len equ $ - endline
+eof         db "EOF", 0x0
+eof_len equ $ - eof
