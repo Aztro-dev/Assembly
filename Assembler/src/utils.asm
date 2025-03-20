@@ -6,7 +6,10 @@ global concat_str
 ; rsi = secondstr
 ; output str in rax
 concat_str:
-
+  ; Find length of firststr
+  ; Find length of secondstr
+  ; Malloc firststr length + secondstr length - 1 (because we don't need two null bytes)
+  ; return malloc address
 	ret
 global concat_str_nomalloc
 ; rdi = firststr (big enough for rsi)
