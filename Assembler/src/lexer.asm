@@ -107,6 +107,11 @@ print_tokens:
   call malloc
   mov qword[token_output], rax
 
+  mov rdi, 10 ; elements
+  mov rsi, token_size    ; bytes per element
+  call malloc
+  mov qword[tokens], rax
+
   mov rsi, qword[tokens]
   mov rdx, qword[token_output]
   .loop:
@@ -238,6 +243,7 @@ print_tokens:
   mov rsi, rdx
   mov rdx, r15
   syscall
+  ret
   .error:
   mov rax, SYS_EXIT
   mov rdi, -1
