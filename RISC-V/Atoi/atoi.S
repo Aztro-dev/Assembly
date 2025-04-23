@@ -25,7 +25,6 @@ _start:
 
     jal atoi
 
-
     addi a0, zero, 0 # exit status
     addi a7, zero, SYS_EXIT # _NR_sys_exit
     ecall # invoke system call
