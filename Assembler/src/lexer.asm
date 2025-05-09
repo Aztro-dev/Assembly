@@ -101,6 +101,7 @@ extern malloc
 section .text
 global  print_tokens
 
+; TODO: Fix this lmao
 print_tokens:
   mov rdi, 1000 ; elements
   mov rsi, 1    ; bytes per element
