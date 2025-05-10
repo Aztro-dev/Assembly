@@ -21,6 +21,9 @@ compile: $(OBJS)
 $(BUILD)/%.o: $(SRC)/%.asm
 	$(AS) $(AS_FLAGS) -o $@ $^
 
+run: $(BUILD)/$(TARGET)
+	@./$(BUILD)/$(TARGET) example.S
+
 .PHONY: clean
 clean:
 	@rm -rf $(BUILD)/*
