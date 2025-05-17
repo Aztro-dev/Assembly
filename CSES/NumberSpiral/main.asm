@@ -1,5 +1,7 @@
 %define SYS_READ 0
 %define SYS_WRITE 1
+%define SYS_OPEN 2
+%define SYS_CLOSE 3
 %define SYS_EXIT 60
 
 %define STDIN 0
@@ -38,14 +40,14 @@ solve:
                 add r12, rax
                 sub r12, rbx
                 mov rax, r12
-                call write_uint64
-                call write_newline
+                ; call write_uint64
+                ; call write_newline
             jmp .testcases
             .x_even:
                 add r12, rbx
                 mov rax, r12
-                call write_uint64
-                call write_newline
+                ; call write_uint64
+                ; call write_newline
             jmp .testcases
         .y_gt_x:
             mov r12, rax
@@ -59,25 +61,32 @@ solve:
                 add r12, rbx
                 sub r12, rax
                 mov rax, r12
-                call write_uint64
-                call write_newline
+                ; call write_uint64
+                ; call write_newline
             jmp .testcases
             .y_odd:
                 add r12, rax
                 mov rax, r12
-                call write_uint64
-                call write_newline
+                ; call write_uint64
+                ; call write_newline
             jmp .testcases
     .exit_testcases:
     ret
 
 global _start
 _start:
+    mov rax, SYS_OPEN
+    mov rdi, input
+    xor rsi, rsi
+    xor rdx, rdx
+    syscall
+    mov [fd], rax
+    
     mov r8, input_buffer
     mov r9, output_buffer
     
     mov rax, SYS_READ
-    mov rdi, STDIN
+    mov rdi, [fd]
     mov rsi, r8
     mov rdx, BUF_SIZE
     syscall
@@ -92,6 +101,9 @@ _start:
     mov rsi, output_buffer
     mov rdx, r11
     syscall
+
+    mov rax, SYS_CLOSE
+    mov rdi, [fd]
 
     mov rax, SYS_EXIT
     mov rdi, 0x0
@@ -169,4 +181,4 @@ write_newline:
     ret
 
 section .rodata:
-name db "input.in"
+input db "input.in"
