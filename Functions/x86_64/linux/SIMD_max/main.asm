@@ -5,7 +5,7 @@
 
 %define STDOUT 1
 
-%define NUMBERS_LEN 65536
+%define NUMBERS_LEN 1000000
 
 section .bss
 numbers resd 4 * NUMBERS_LEN
@@ -55,7 +55,11 @@ _start:
         push rax
         call print_newline
         pop rdi
+    %else
+        mov rdi, rax
     %endif
+
+    .before_print:
 
     call print_uint64
 
