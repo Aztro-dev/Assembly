@@ -5,7 +5,7 @@
 
 %define STDOUT 1
 
-%define NUMBERS_LEN 1000000
+%define NUMBERS_LEN 100_000_000
 
 section .bss
 numbers resd 4 * NUMBERS_LEN
@@ -20,12 +20,12 @@ avx2_uint32_max:
     vmovdqu ymm0, [rdi]
     mov rcx, 0x0
     .loop:
-        cmp rcx, NUMBERS_LEN
-        jge .exit_loop
-        vpmaxud ymm0, [rdi + rcx * 4]
-        inc rcx
-        jmp .loop
-    
+      cmp rcx, NUMBERS_LEN
+      jge .exit_loop
+      vpmaxud ymm0, [rdi + rcx * 4]
+      add rcx, 8 ; 8 elements in every iteration
+      jmp .loop
+     
     .exit_loop:
     vextracti128 xmm1, ymm0, 1 ; xmm1 = higher 128 bits of ymm0
     ; xmm0 already has the lower 128 bits of ymm0
