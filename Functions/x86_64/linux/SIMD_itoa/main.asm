@@ -4,19 +4,22 @@
 %define STDOUT 1
 
 section .bss
-; output_buffer  4
+output_buffer resq 4
 
 section .data
 numbers dd 1, 2, 3, 4
-output_buffer times(8 * 4) db '0'
+
+section .rodata
+to_char dq '0', '0', '0', '0'
 
 section .text
-; input nums in xmm0
+; input nums in ymm0
 ; output string in rax
 ; output length in rdi
 avx2_int32_itoa:
+    ; move dwords in xmm0 to qwords in ymm0
     vpmovzxdq ymm0, xmm0
-    vpxor ymm1, ymm1
+    vpaddq ymm0, [to_char]
     vmovdqu [output_buffer], ymm0
     mov rax, output_buffer
     mov rdi, 8 * 4 ; 8 bytes in a 64-bit int, 4 of those ints
