@@ -14,6 +14,7 @@ section .data
 output_buffer times(20) db '0'
 
 section .text
+global uint32_max
 ; input nums in rdi
 ; output num in rax
 uint32_max:
@@ -23,7 +24,7 @@ uint32_max:
     cmp rcx, NUMBERS_LEN
     jge .exit_loop
 
-    mov ebx, dword[numbers + 4 * rcx]
+    mov ebx, dword[rdi + 4 * rcx]
     cmp rax, rbx
     cmovl eax, ebx
 
@@ -33,7 +34,7 @@ uint32_max:
   .exit_loop:
   ret
 
-global _start
+; global _start
 _start:
   call generate_rand
 

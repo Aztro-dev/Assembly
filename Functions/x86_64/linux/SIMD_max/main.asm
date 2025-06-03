@@ -14,6 +14,7 @@ section .data
 output_buffer times(20) db '0'
 
 section .text
+global avx2_uint32_max
 ; input nums in rdi
 ; output num in rax
 avx2_uint32_max:
@@ -44,7 +45,7 @@ avx2_uint32_max:
     movd eax, xmm0
     ret
 
-global _start
+; global _start
 _start:
     call generate_rand
 
