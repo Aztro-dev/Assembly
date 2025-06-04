@@ -6,37 +6,33 @@
 section .bss
 output_buffer resq 4
 
-section .data
-numbers dd 1, 2, 3, 4
-
 section .rodata
-to_char dq '0', '0', '0', '0'
+; a / 10 = (a * 0xCCCCCCCD) >> 35
+magic10    dq 0xCCCCCCCD, 0xCCCCCCCD, 0xCCCCCCCD, 0xCCCCCCCD
+shift_amt  dq 35, 35, 35, 35
+
+ascii_zero dd 0x30303030, 0x30303030
 
 section .text
-; input nums in ymm0
+; input num1 in rdi
+; input num2 in rsi
+; input num3 in rdx
+; input num4 in rcx
 ; output string in rax
 ; output length in rdi
 avx2_int32_itoa:
-    ; move dwords in xmm0 to qwords in ymm0
-    vpmovzxdq ymm0, xmm0
-    vpaddq ymm0, [to_char]
-    vmovdqu [output_buffer], ymm0
+    ; move from general purpose registers to ymm register
+    movq xmm0, rdi ; num1
+    movq xmm1, rdx ; num3
+    pinsrq xmm0, rsi, 1 ; num2
+    pinsrq xmm1, rcx, 1 ; num4
+    vinserti128 ymm0, ymm0, ymm1, 1
+
+    vpaddq ymm0, ymm0, [ascii_zero]
+    
+    ; For division by 10
+    vmovdqu ymm15, [magic10]
+    vmovdqu ymm14, [shift_amt]
+
     mov rax, output_buffer
-    mov rdi, 8 * 4 ; 8 bytes in a 64-bit int, 4 of those ints
-    ret
-
-global _start
-_start:
-    vmovdqu xmm0, [numbers]
-    call avx2_int32_itoa
-
-    mov rsi, rax
-    mov rdx, rdi
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    syscall
-
-    mov rax, SYS_EXIT
-    mov rdi, 0x0
-    syscall
     ret
