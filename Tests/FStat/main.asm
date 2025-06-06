@@ -4,7 +4,7 @@
 %define SYS_EXIT 60
 
 struc stat
-  .irrelevant resb 48
+  .pad resb 48
   .size resd 1
 endstruc
 
