@@ -37,6 +37,9 @@ _start:
   mov rdi, qword[file_fd]
   syscall
 
+  extern print_tokens
+  call print_tokens
+
   mov rdi, file_path
   extern create_file
   call create_file
