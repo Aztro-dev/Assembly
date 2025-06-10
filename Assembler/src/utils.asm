@@ -1,4 +1,4 @@
-%define SYS_BRK 12
+%include "src/constants.asm"
 
 section .text
 global concat_str

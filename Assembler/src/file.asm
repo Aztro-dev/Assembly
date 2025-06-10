@@ -1,7 +1,4 @@
-%define SYS_OPEN  2
-%define SYS_CLOSE 3
-%define SYS_LSEEK 8
-%define SYS_CREAT 85
+%include "src/constants.asm"
 
 %define SEEK_SET  0
 %define SEEK_CUR  1

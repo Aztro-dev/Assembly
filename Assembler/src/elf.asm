@@ -156,5 +156,5 @@ endstruc
 
 %endif
 
-; How to find e_entry (_start location)
+; TODO: How to find e_entry (_start location)
 ; https://stackoverflow.com/a/71367851/16159716
