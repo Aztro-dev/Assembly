@@ -49,4 +49,3 @@ global write_log
 section .rodata
 red_text: db 0x1b, "[31m"
 clear_color_text: db 0x1b, "[0m"
-

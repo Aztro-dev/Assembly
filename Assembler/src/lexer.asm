@@ -105,6 +105,8 @@ print_tokens:
   mov qword[tokens], rax
 
   mov rsi, qword[tokens]
+  mov qword[rsi + 9 * token_size + token.token_type], KEYWORDS
+  mov qword[rsi + 10 * token_size + token.token_type], EOF
   mov rdx, qword[token_output]
   .loop:
     cmp qword[rsi + token.token_type], EOF
@@ -117,97 +119,57 @@ print_tokens:
     .check_identifier:
     cmp rdi, IDENTIFIER
     jne .check_keyword
-
     mov rdi, identifier
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .check_keyword:
     cmp rdi, KEYWORDS
     jne .check_separator
-
     mov rdi, keyword
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .check_separator:
     cmp rdi, SEPARATOR
     jne .check_operator
-
     mov rdi, separator
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .check_operator:
     cmp rdi, OPERATOR
     jne .check_literal
-
     mov rdi, operator
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .check_literal:
     cmp rdi, LITERAL
     jne .check_endline
-
     mov rdi, literal
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .check_endline:
     cmp rdi, ENDLINE
     jne .check_eof
-
     mov rdi, endline
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .check_eof:
     cmp rdi, EOF
     jne .error
-
     mov rdi, eof
-    push rsi
-    mov rsi, rdx
-    call concat_str_nomalloc
-    pop rsi
-    
-    ; jmp .add_contents
-    jmp .exit_contents_loop
+    jmp .add_contents
 
     .add_contents:
+    push rsi
+    mov rsi, rdx
+    xchg rsi, rdi
+    call concat_str_nomalloc
+    add rdx, rax
+    pop rsi
+
     mov byte[rdx], ','
     inc rdx
+
+    jmp .exit_contents_loop
 
     mov r8, rax
     .contents_loop:
@@ -227,16 +189,25 @@ print_tokens:
     inc rdx
     jmp .loop
   .exit_loop:
-  mov r15, qword[token_output]
-  sub r15, rdx
+  mov r15, rdx
+  sub r15, qword[token_output]
 
   mov rax, SYS_WRITE
   mov rdi, STDOUT
-  mov rsi, rdx
+  mov rsi, qword[token_output]
   mov rdx, r15
   syscall
+
+  cmp rax, 0
+  jl .error
   ret
+
   .error:
+  mov rdi, token_error
+  mov rsi, token_error_len
+  extern write_err
+  call write_err
+
   mov rax, SYS_EXIT
   mov rdi, -1
   syscall
@@ -263,3 +234,6 @@ endline     db "endline", 0x0
 endline_len equ $ - endline
 eof         db "EOF", 0x0
 eof_len equ $ - eof
+token_error db "There was an error while parsing the tokens", 0x0a, 0x0
+token_error_len equ $ - token_error
+
