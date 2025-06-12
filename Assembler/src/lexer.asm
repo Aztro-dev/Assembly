@@ -169,22 +169,6 @@ print_tokens:
     mov byte[rdx], ','
     inc rdx
 
-    jmp .exit_contents_loop
-
-    mov r8, rax
-    .contents_loop:
-      cmp byte[r8], 0x0
-      je .exit_contents_loop
-
-      mov bl, byte[r8]
-      mov byte[rdx], bl
-
-      inc rdx
-      inc r8
-      jmp .contents_loop
-    
-    .exit_contents_loop:
-    
     mov byte[rdx], 0x0a ; newline
     inc rdx
     jmp .loop
