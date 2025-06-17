@@ -92,7 +92,8 @@ extern malloc
 section .text
 global  print_tokens
 
-; TODO: Fix this lmao
+; rdi: pointer to input buffer
+; rsi: length of the input buffer
 print_tokens:
   mov rdi, 1000 ; elements
   mov rsi, 1    ; bytes per element

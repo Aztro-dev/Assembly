@@ -37,6 +37,8 @@ _start:
   mov rdi, qword[file_fd]
   syscall
 
+  mov rdi, qword[buf]
+  mov rsi, qword[buf_size]
   extern print_tokens
   call print_tokens
 
