@@ -3,28 +3,47 @@
 
 %define STDOUT 1
 
+section .data
+brand db 48 dup(0) ; 48 bytes = 3 * 16-byte cpuid results
+
 section .text
-global _start
+    global _start
 
 _start:
-  mov rax, 0x0
-  cpuid
+    mov rdi, brand
 
-  mov dword[string], ebx
-  mov dword[string + 0x4], ecx
-  mov dword[string + 0x8], edx
-  mov byte [string + 0x0c], 0x0a 
+    mov eax, 0x80000002
+    call cpuid_to_mem
 
-  mov rax, SYS_WRITE
-  mov rdi, STDOUT
-  mov rsi, string
-  mov rdx, 13
-  syscall
-  
-  mov rax, SYS_EXIT
-  xor rdi, rdi
-  syscall
-  ret
+    mov eax, 0x80000003
+    call cpuid_to_mem
 
-section .bss
-string resb 13
+    mov eax, 0x80000004
+    call cpuid_to_mem
+
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
+    mov rsi, brand ; buffer
+    mov edx, 48 ; length
+    syscall
+
+    mov eax, SYS_EXIT
+    xor edi, edi
+    syscall
+
+cpuid_to_mem:
+    push rbx
+    push rcx
+    push rdx
+
+    cpuid
+    mov [rdi], eax
+    mov [rdi+4], ebx
+    mov [rdi+8], ecx
+    mov [rdi+12], edx
+    add rdi, 16
+
+    pop rdx
+    pop rcx
+    pop rbx
+    ret
