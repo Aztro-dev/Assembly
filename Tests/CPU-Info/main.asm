@@ -37,10 +37,10 @@ cpuid_to_mem:
     push rdx
 
     cpuid
-    mov [rdi], eax
-    mov [rdi+4], ebx
-    mov [rdi+8], ecx
-    mov [rdi+12], edx
+    mov dword [rdi], eax
+    mov dword [rdi+4], ebx
+    mov dword [rdi+8], ecx
+    mov dword [rdi+12], edx
     add rdi, 16
 
     pop rdx
