@@ -90,24 +90,25 @@ extern concat_str_nomalloc
 extern malloc
 
 section .text
+global parse_tokens
+; rdi: pointer to input buffer
+; rsi: size of the input buffer (bytes)
+parse_tokens:
+  ret
+
 global  print_tokens
 
-; rdi: pointer to input buffer
-; rsi: length of the input buffer
+; rdi: pointer to token buffer
 print_tokens:
-  mov rdi, 1000 ; elements
-  mov rsi, 1    ; bytes per element
+  push rdi
+
+  mov rdi, 1000
+  mov rsi, identifier_len ; max possible bytes per element
   call malloc
   mov qword[token_output], rax
 
-  mov rdi, 10 ; elements
-  mov rsi, token_size    ; bytes per element
-  call malloc
-  mov qword[tokens], rax
+  pop rsi
 
-  mov rsi, qword[tokens]
-  mov qword[rsi + 9 * token_size + token.token_type], KEYWORDS
-  mov qword[rsi + 10 * token_size + token.token_type], EOF
   mov rdx, qword[token_output]
   .loop:
     cmp qword[rsi + token.token_type], EOF

@@ -39,6 +39,10 @@ _start:
 
   mov rdi, qword[buf]
   mov rsi, qword[buf_size]
+  extern parse_tokens
+  call parse_tokens
+  
+  mov rdi, rax
   extern print_tokens
   call print_tokens
 
