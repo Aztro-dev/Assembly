@@ -93,7 +93,18 @@ section .text
 global parse_tokens
 ; rdi: pointer to input buffer
 ; rsi: size of the input buffer (bytes)
+; rax: pointer to token buffer (output)
 parse_tokens:
+  xor rcx, rcx
+  .loop:
+    cmp rcx, rsi
+    jl .exit_loop
+    
+    
+    
+    inc rcx
+    jmp .loop
+  .exit_loop:
   ret
 
 global  print_tokens
