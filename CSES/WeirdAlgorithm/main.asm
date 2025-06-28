@@ -1,175 +1,114 @@
-section .data
+%define SYS_READ 0
+%define SYS_WRITE 1
+%define SYS_EXIT 60
 
-space:
-	db " "
+%define STDIN 0
+%define STDOUT 1
 
-	section .text
-	global  _start
+%define INPUT_BUF_SIZE 6
+%define OUTPUT_BUF_SIZE 10_000_000
 
-	; read(rsi input, rdx size)
+section .bss
+input_buffer resb INPUT_BUF_SIZE
+output_buffer resb OUTPUT_BUF_SIZE
 
-read:
-	xor rax, rax; Read
-	xor rdi, rdi; Stdin
-	syscall
-	ret
+section .text
+%macro write_uint64 1
+    push rbp
+    mov rax, %1
 
-	; print(rsi buff, rdx length)
+    mov rcx, 10
+    mov rbp, rsp
+    %%div:
+    xor rdx, rdx
+    div rcx
+    add rdx, 0x30 ; num % 10 + '0'
 
-print:
-	mov rax, 1; write
-	mov rdi, 1; stdout
-	syscall
-	ret
+    dec rsp
+    mov byte [rsp], dl ; push character to stack
 
-	; atoi (rsi pointer_to_ascii) -> rdx
+    test rax, rax
+    jnz %%div ; keep pushing to stack for rest of number
+
+    ; copy stack string to buffer
+    ; we do this to not have to keep track
+    ; of the current position in the buffer
+    %%loop:
+    mov cl, byte [rsp]
+    inc rsp
+
+    mov byte [r9], cl
+    inc r9
+
+    cmp rsp, rbp
+    jl %%loop
+
+    mov byte[r9], 0x20 ; space
+    inc r9
+
+    pop rbp
+%endmacro
+
+solve:
+    call atoi
+    write_uint64 rdi
+    mov rbx, 0x1 ; for n / 2
+    .loop:
+        cmp rdi, 0x1
+        jle .exit_loop
+
+        lea rsi, [rdi + 2 * rdi + 1]
+
+        test rdi, 0x1
+        shrx rdi, rdi, rbx
+        cmovnz rdi, rsi
+
+        write_uint64 rdi
+        jmp .loop
+    .exit_loop:
+    dec r9
+    ret
+
+global _start
+_start:
+    mov r8, input_buffer
+    mov r9, output_buffer
+    
+    mov rax, SYS_READ
+    mov rdi, STDIN
+    mov rsi, r8
+    mov rdx, INPUT_BUF_SIZE
+    syscall
+
+    call solve
+
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
+    mov rsi, output_buffer
+    mov rdx, r9
+    sub rdx, output_buffer
+    syscall
+
+    mov rax, SYS_EXIT
+    mov rdi, 0x0
+    syscall
+    ret
 
 atoi:
-	xor   rax, rax; rax = 0
-	xor   rdx, rdx; rdx = 0
-	lodsb ; load byte at address RSI into AL.
-	cmp   al, '-'
-	sete  bl; bl = negative flag
-	jne   .lpv; jump to .lpv if positive
+    xor rdi, rdi
+    .loop:
+    movzx rcx, byte [r8]
+    inc r8
 
-.lp:
-	lodsb ; load byte at address RSI into AL
+    cmp cl, 0x30
+    jl .end
+    
+    ; rax = 10 * rax - '0'
+    shl rdi, 1		
+    lea rdi, [rdi + rdi * 4 - 48]        
+    ; rax += character
+    add rdi, rcx
 
-.lpv:
-	sub  al, '0'; turns al into number
-	jl   .end; if sign flag != overflow flag, jump to .end
-	imul rdx, 10; rdx *= 10
-	add  rdx, rax; rdx += rax
-	jmp  .lp; load byte at address RSI into AL
-
-.end:
-	test bl, bl; bl & bl
-	jz   .p; if bl is zero, return
-	neg  rdx; rdx = -rdx
-	;    xchg rax, rdx
-
-.p:
-	ret
-
-	; itoa(rax integer) -> rsi output
-
-itoa:
-	std  ; rsi -= 1, rdi -= 1
-	mov  r9, 10; r9 will be our base (base 10)
-	bt   rax, 63; copy bit 63 (most significant, handles negatives) from rax to carry flag
-	setc bl; if carry flag is set, set bl to 1 (negative sign)
-	jnc  .lp; if carry flag isn't set, jump to .lp
-	neg  rax; if carry flag is set, negate the number
-
-.lp:
-	xor   rdx, rdx; reset rdx
-	div   r9; rax / r9 -> rax output, rdx remainder
-	xchg  rax, rdx; swap rax and rdx
-	add   rax, '0'; rax is now the remainder, which is turned into an ascii integer
-	stosb ; load byte at rsi into al
-	xchg  rax, rdx; rax is now the result of the first division, and rdx is now the ?
-	test  rax, rax; if rax is zero
-	jnz   .lp; if rax isn't zero, jump to .lp (loop), this ensures we have another digit to process
-	test  bl, bl; if bl is zero (sign or no sign)
-	jz    .p; if number is positive, jump to .p (exit)
-	mov   al, '-'; if number is NOT positive (negative), add a negative sign
-	stosb ; load byte at rsi into al
-
-.p:
-	cld ; clear direction flag (Turns off automatic rsi increments whenever calling a string function (like stosb))
-	inc rdi
-	ret
-
-	; print_itoa(rsi buff, rax input) -> void
-
-print_itoa:
-	call itoa
-	sub  rsi, rdi
-	mov  rdx, rsi
-	mov  rsi, rdi
-	;    print(rsi buff, rdx length)
-	call print
-
-print_space:
-	mov  rsi, space
-	mov  rdx, 0x1; length of one
-	call print
-
-	; atoi(rsi input) -> rcx
-
-atoi_rcx:
-	mov   rsi, input
-	call  atoi; atoi(rsi input) -> rdx
-	mov   rcx, rdx; store value of atoi
-	mov   rdi, input+18; end of buff
-	mov   rsi, rdi; rsi = rdi
-	std   ; rsi--, rdi--
-	mov   rax, 10
-	stosb ; al = [rsi]
-	ret
-
-	; weird_algorithm(r8 input) -> void
-
-weird_algorithm:
-	mov r8, 0x3; multiply by 3
-	cmp rax, 1
-	je  .exit
-
-.loop:
-	cmp rax, 0x1; if current number is one
-	jle .exit
-
-	xor rdx, rdx
-
-	test rax, 1; rax & 1
-	jz   .even
-	jnz  .odd
-
-.even:
-	shr  rax, 0x1
-	;    rax is quotient, rdx is remainder
-	mov  r13, rax
-	;    call print_space
-	call print_itoa
-	mov  rax, r13
-	jmp  .loop
-
-.odd:
-	mul  r8; result stored in rdx:rax
-	inc  rax
-	mov  r13, rax
-	;    call print_space
-	call print_itoa
-	mov  rax, r13
-	jmp  .loop
-
-.exit:
-	ret
-
-_start:
-	mov  rsi, input
-	mov  rdx, 19
-	;    read(rsi input, rdx size)
-	call read
-
-	;    atoi_rcx(rsi input) -> rcx output
-	call atoi_rcx
-
-	mov rax, rcx; for use in print_itoa
-
-	;    print_itoa(rax input)
-	call print_itoa; print the first number of the sequence
-
-	mov rax, rcx
-
-	;    weird_algorithm(rax input) -> void
-	call weird_algorithm
-
-	mov rax, 60; exit
-	mov rdi, 0
-	syscall
-
-	section .bss
-
-input:
-	resb 0x13; 19 in decimal
+    jmp .loop
+    .end:
+    ret
