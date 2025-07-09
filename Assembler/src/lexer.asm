@@ -31,23 +31,23 @@
 %define SW      19
 %define SP      20
 
-%define ADD     20
-%define ADDI    21
-%define ADDW    22
-%define ADDIW   23
-%define SUB     24
-%define SLL     25
-%define SLLI    26
-%define SRL     27
-%define SRLI    28
-%define SRA     29
-%define SRAI    30
-%define AND     31
-%define ANDI    32
-%define XOR     33
-%define XORI    34
-%define OR      35
-%define ORI     36
+%define ADD     21
+%define ADDI    22
+%define ADDW    23
+%define ADDIW   24
+%define SUB     25
+%define SLL     26
+%define SLLI    27
+%define SRL     28
+%define SRLI    29
+%define SRA     30
+%define SRAI    31
+%define AND     32
+%define ANDI    33
+%define XOR     34
+%define XORI    35
+%define OR      36
+%define ORI     37
 
 %define SLT     38
 %define SLTU    39
@@ -55,7 +55,9 @@
 %define SLTIU   41
 
 %define FENCE   42
-%define FENCE.I 43
+%define FENCE_I 43
+
+%define NOT_KEYWORD 255
 %endif
 
 %ifndef SEPARATOR
@@ -89,7 +91,63 @@ endstruc
 extern concat_str_nomalloc
 extern malloc
 
+section .rodata
+keyword_ids db LUI, AUIPC, \
+    JAL, JALR, \
+    BEQ, BNE, BLT, BLTU, BGT, BGTU, \
+    LB, LBU, LH, LHU, LW, LWU, LD, \
+    SB, SH, SW, SP, \
+    ADD, ADDI, ADDW, ADDIW, \
+    SUB, SLL, SLLI, SRL, SRLI, SRA, SRAI, \
+    AND, ANDI, XOR, XORI, OR, ORI, \
+    SLT, SLTU, SLTI, SLTIU, \
+    FENCE, FENCE_I
+keyword_ids_len equ $ - keyword_ids
+
+%define KEYWORD_COUNT keyword_ids_len
+
+%macro keyword_entry 2
+  kw_%1 db %2, 0x0
+%endmacro
+
+%macro keyword_pointer 1
+  dq kw_%1
+%endmacro
+
+%macro keyword_table 1-*
+  ; We put two underscores to avoid naming conflicts
+  %assign __i 0
+  %rep %0
+    keyword_entry __i, %1
+    %assign __i __i + 1
+    %rotate 1
+  %endrep
+
+  keywords:
+  %assign __i 0
+  %rep %0
+    keyword_pointer __i
+    %assign __i __i + 1
+  %endrep
+  ; To find the end of the array
+  dq 0x0
+%endmacro
+
+keyword_table "1", "2", "3", "4", "5"
+
 section .text
+global matches_keyword
+; rdi: pointer to input string
+; rsi: size of the input string (bytes)
+; rax: keyword returned OR -1 (255) if error 
+matches_keyword:
+  mov rax, SYS_WRITE
+  mov rdi, STDOUT
+  mov rsi, kw_0
+  mov rdx, 2
+  syscall
+  ret
+
 global parse_tokens
 ; rdi: pointer to input buffer
 ; rsi: size of the input buffer (bytes)
