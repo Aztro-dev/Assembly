@@ -2,6 +2,7 @@
 **/main
 **/main.exe
 **/*.o
+**/*.obj
 **/*.a
 **/*.h
 **/.DS_Store
