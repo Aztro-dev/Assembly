@@ -7,3 +7,4 @@
 **/*.h
 **/.DS_Store
 **/*\.in
+**/raylib/*
