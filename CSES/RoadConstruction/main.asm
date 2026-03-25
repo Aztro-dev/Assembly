@@ -90,9 +90,19 @@ solve:
       ; printf("%d %d\n", connected_cities, biggest_connection);
       mov rax, r12
       call write_uint32
+
+      ; Add a space
+      mov byte [r9], 0x20
+      inc r9
+      inc r11
+
       mov rax, rcx
       call write_uint32
-      call write_newline
+
+      ; write newline
+      mov byte [r9], 0x0a
+      inc r9
+      inc r11
     pop rcx
     pop rbx
 
@@ -208,13 +218,9 @@ write_uint32:
     mov [r9 + 8], ax
 
     add r9, r10
-    
-    ; Add a space
-    mov byte [r9], 0x20
-    inc r9
 
     ; update final size so we print the right number of chars
-    lea r11, [r11 + r10 + 1]
+    lea r11, [r11 + r10]
 
     mov rsp, rbp
     pop r8
@@ -222,12 +228,6 @@ write_uint32:
     pop rcx
     pop rbp
     pop rax
-    ret
-
-write_newline:
-    mov byte [r9], 0x0a
-    inc r9
-    inc r11
     ret
 
 ; rdi: number of elements
