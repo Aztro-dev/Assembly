@@ -308,11 +308,9 @@ DSU_find:
     mov rsi, rdi
     ; index * sizeof(element) = byte_index
     mov rax, rdi
-    xor rdx, rdx
-    ; elem size is 4 bytes, so we just shift by 2
-    shl rax, 2
+    ; elem size is 4 bytes, so we just multiply by 4
     ; rdi = index_bytes
-    mov rdi, rax
+    lea rdi, [rax * 4]
 
     mov rax, qword[dsu + DSU.elements]
     ; rbx = elements[index]
@@ -375,12 +373,10 @@ DSU_unite:
     add rdi, r15
 
     mov rsi, rbx
-    ; rsi = second index but in bytes
-    ; shift left by 2 bits to multiply by 4
-    shl rsi, 2
+    ; multiply by 4 to get index in bytes
     ; elements[rbx]
     mov r15, qword[dsu + DSU.elements]
-    add rsi, r15
+    lea rsi, [r15 + rsi * 4]
 
     ; r15 = elements[second]
     mov r15d, dword[rsi]
