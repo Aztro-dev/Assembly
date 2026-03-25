@@ -16,7 +16,7 @@ default REL
 section .bss
 stat_struct resb 144; 144 bytes to hold file info from fstat
 output_buffer resb OUTPUT_BUF_SIZE
-dsu_elements resd 1_000_000
+dsu_elements resd 100_000
 
 %macro INLINE_DSU_FIND 1
     ; %1 is city index
