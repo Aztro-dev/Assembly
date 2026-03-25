@@ -106,9 +106,9 @@ solve:
     push rcx
       ; printf("%d %d\n", connected_cities, biggest_connection);
       mov rax, rax
-      call write_uint64
+      call write_uint32
       mov rax, rcx
-      call write_uint64
+      call write_uint32
       call write_newline
     pop rcx
     pop rbx
@@ -165,46 +165,77 @@ atoi:
     jmp .loop
     .end:
     ret
-write_uint64:
+
+write_uint32:
     push rax
     push rbp
     push rcx
     push rdx
+    push r8
 
-    mov rcx, 10
     mov rbp, rsp
+    ; 16 bytes of scratch space on stack
+    sub rsp, 16
+    lea r8, [rbp]
+
     .div:
-    xor rdx, rdx
-    div rcx
+    mov r10d, eax            ; Save original EAX since mul clobbers it
+
+    ; magic super algo for n % 10
+    mov  edx, 0xCCCCCCCD
+    mul  edx
+    shr  edx, 3
+    mov  ecx, edx
+    lea  edx, [edx*4 + edx]
+    add  edx, edx
+    mov  eax, r10d
+    sub  eax, edx
+
+    mov edx, eax
+    mov eax, ecx
+
     add rdx, 0x30 ; num % 10 + '0'
 
-    dec rsp
-    mov byte [rsp], dl ; push character to stack
+    dec r8
+    mov byte [r8], dl ; push character to stack
 
     test rax, rax
     jnz .div ; keep pushing to stack for rest of number
 
     ; Add bytes created to r11 (length of output buffer)
-    add r11, rbp
-    sub r11, rsp
+    mov r10, rbp
+    sub r10, r8
+    add r11, r10
 
     ; copy stack string to buffer
     ; we do this to not have to keep track
     ; of the current position in the buffer
-    .loop:
-    mov cl, byte [rsp]
-    inc rsp
+    ; Copy 8 bytes
+    mov rax, qword[r8]
+    mov qword [r9], rax
+    ; get last 2 bytes just in case
+    mov ax, word[r8 + 8]
+    mov word [r9 + 8], ax
 
-    mov byte [r9], cl
-    inc r9
 
-    cmp rsp, rbp
-    jl .loop
+    ; .loop:
+    ; mov cl, byte [r8]
+    ; inc r8
+    ;
+    ; mov byte [r9], cl
+    ; inc r9
+    ;
+    ; cmp r8, rbp
+    ; jl .loop
 
+    add r9, r10
     mov byte[r9], 0x20 ; space
     inc r9
     inc r11
 
+    ; Reset taht 16 byte thingymabob
+    mov rsp, rbp
+    pop r8
     pop rdx
     pop rcx
     pop rbp
@@ -259,7 +290,8 @@ DSU_find_size:
     call DSU_find
     ; rax = rax * sizeof(element)
     ; aka rax = index in bytes
-    imul rax, qword[dsu + DSU.element_size]
+    ; sizeof(element) is 4 bytes for now, so we just shift to eliminate mul
+    shl rax, 2
     ; rax = ptr to elements[index]
     add rax, qword[dsu + DSU.elements]
     ; rax = elements[index]
@@ -277,7 +309,8 @@ DSU_find:
     ; index * sizeof(element) = byte_index
     mov rax, rdi
     xor rdx, rdx
-    mul qword[dsu + DSU.element_size]
+    ; elem size is 4 bytes, so we just shift by 2
+    shl rax, 2
     ; rdi = index_bytes
     mov rdi, rax
 
@@ -335,14 +368,16 @@ DSU_unite:
     ; rsi = ptr to elements[rbx]
     mov rdi, rax
     ; rdi = first index but in bytes
-    imul rdi, qword[dsu + DSU.element_size]
+    ; shift left by 2 bits to multiply by 4
+    shl rdi, 2
     ; elements[rax]
     mov r15, qword[dsu + DSU.elements]
     add rdi, r15
 
     mov rsi, rbx
     ; rsi = second index but in bytes
-    imul rsi, qword[dsu + DSU.element_size]
+    ; shift left by 2 bits to multiply by 4
+    shl rsi, 2
     ; elements[rbx]
     mov r15, qword[dsu + DSU.elements]
     add rsi, r15
