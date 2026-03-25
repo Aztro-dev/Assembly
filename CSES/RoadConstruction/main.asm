@@ -1,4 +1,4 @@
-default REL
+; default REL
 
 %define SYS_READ 0
 %define SYS_WRITE 1
@@ -33,6 +33,16 @@ dsu: istruc DSU
     ; Initializes length of array to 0 for now
     at DSU.elements_len, dq 0x0
 iend
+align 2
+; lookup table for fast atoi
+lut100:
+    %assign i 0
+    %rep 100
+        %assign tens (i / 10) + '0' ; tens digit
+        %assign ones (i % 10) + '0' ; ones digit
+        db tens, ones ; write those jawns
+        %assign i i+1
+    %endrep
 
 section .text
 solve:
@@ -173,66 +183,54 @@ write_uint32:
     push r8
 
     mov rbp, rsp
-    ; 16 bytes of scratch space on stack
+    ; 16 byte playspace thingy
     sub rsp, 16
+    ; point to end of buffer skull emoji
     lea r8, [rbp]
 
-    .div:
-    mov r10d, eax            ; Save original EAX since mul clobbers it
+    .div100:
+    mov r10, rax
 
-    ; magic super algo for n % 10
-    mov  edx, 0xCCCCCCCD
-    mul  edx
-    shr  edx, 3
-    mov  ecx, edx
-    lea  edx, [edx*4 + edx]
-    add  edx, edx
-    mov  eax, r10d
-    sub  eax, edx
-
-    mov edx, eax
-    mov eax, ecx
-
-    add rdx, 0x30 ; num % 10 + '0'
-
-    dec r8
-    mov byte [r8], dl ; push character to stack
-
+    ; super duper fast divide new and improved
+    ; divide by 100
+    imul rax, rax, 1374389535 
+    shr rax, 37
+    ; This part is to find trhe remainder
+    mov rcx, rax          
+    imul rcx, rcx, 100
+    sub r10, rcx
+    
+    ; lookup table my beloved (get 2 characters at the same time)
+    mov dx, word [lut100 + r10 * 2]
+    sub r8, 2
+    mov word [r8], dx
+    
     test rax, rax
-    jnz .div ; keep pushing to stack for rest of number
+    jnz .div100
 
-    ; Add bytes created to r11 (length of output buffer)
+    ; Make sure leading zeroes don't affect anything pls
+    cmp byte [r8], '0'
+    jne .no_leading_zero
+    inc r8
+    .no_leading_zero:
+
+    ; branchless string copy
     mov r10, rbp
     sub r10, r8
-    add r11, r10
-
-    ; copy stack string to buffer
-    ; we do this to not have to keep track
-    ; of the current position in the buffer
-    ; Copy 8 bytes
-    mov rax, qword[r8]
-    mov qword [r9], rax
-    ; get last 2 bytes just in case
-    mov ax, word[r8 + 8]
-    mov word [r9 + 8], ax
-
-
-    ; .loop:
-    ; mov cl, byte [r8]
-    ; inc r8
-    ;
-    ; mov byte [r9], cl
-    ; inc r9
-    ;
-    ; cmp r8, rbp
-    ; jl .loop
+    mov rax, [r8]            
+    mov [r9], rax            
+    mov ax, [r8 + 8]         
+    mov [r9 + 8], ax
 
     add r9, r10
-    mov byte[r9], 0x20 ; space
+    
+    ; Add a space
+    mov byte [r9], 0x20
     inc r9
-    inc r11
 
-    ; Reset taht 16 byte thingymabob
+    ; update final size so we print the right number of chars
+    lea r11, [r11 + r10 + 1]
+
     mov rsp, rbp
     pop r8
     pop rdx
