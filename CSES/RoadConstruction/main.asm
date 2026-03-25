@@ -49,7 +49,8 @@ solve:
   call DSU_init
   pop rax
 
-  ; rax = connected_cities
+  ; r12 = connected_cities
+  mov r12, rax
   ; rcx = biggest connection
   mov rcx, 1
   .loop:
@@ -59,56 +60,42 @@ solve:
     dec rbx
 
     ; r13 = city_a - 1
+    call atoi
+    mov r13, rax
+    dec r13
+
     ; r14 = city_b - 1
-    push rax
-      call atoi
-      mov r13, rax
-      dec r13
-      call atoi
-      mov r14, rax
-      dec r14
-    pop rax
+    call atoi
+    mov r14, rax
+    dec r14
 
     ; if (dsu.unite(city_a, city_b))
     mov rdi, r13
     mov rsi, r14
-    push rax
     push rbx
     push rcx
         call DSU_unite
     pop rcx
     pop rbx
     test rax, rax
-    ; Man I sure do hope that `pop` doesn't change any flags
-    pop rax
     jz .no_union
       ; connected_cities--;
-      dec rax
-      mov r14, rcx ; biggest_connection
-      ; dsu.size(city_a)
-      mov rdi, r13
-      push rax
-      push rbx
-        call DSU_find_size
-        ; biggest_connection = max(biggest_connection, dsu.size(city_a))
-        cmp rax, r14
-        cmovg rcx, rax
-      pop rbx
-      pop rax
+      dec r12
+      ; biggest_connection = max(biggest_connection, dsu.size(city_a))
+      cmp rax, rcx
+      cmovg rcx, rax
     .no_union:
 
-    push rax
     push rbx
     push rcx
       ; printf("%d %d\n", connected_cities, biggest_connection);
-      mov rax, rax
+      mov rax, r12
       call write_uint32
       mov rax, rcx
       call write_uint32
       call write_newline
     pop rcx
     pop rbx
-    pop rax
 
     jmp .loop
   .exit_loop:
@@ -145,21 +132,24 @@ _start:
 
 atoi:
     xor rax, rax
-    .loop:
+    .skip_whitespace:
     movzx r10, byte [r8]
     inc r8
-
+    ; skip spaces and tabs and stuff
     cmp r10b, 0x30
-    jl .end
-    
+    jl .skip_whitespace
+
+    .loop:
     ; rax = 10 * rax - '0'
     shl rax, 1		
-    lea rax, [rax + rax * 4 - 48]        
+    lea rax, [rax + rax * 4 - '0']        
     ; rax += character
     add rax, r10
 
-    jmp .loop
-    .end:
+    movzx r10, byte [r8]
+    inc r8
+    cmp r10b, 0x30
+    jge .loop
     ret
 
 write_uint32:
@@ -338,6 +328,7 @@ DSU_unite:
     ; elements[index2] = index1
     mov dword[dsu_elements + rbx * 4], eax
 
-    ; return true to indicate that a union occurred
-    mov rax, 0x1
+    ; return size of subgraph to indicate that a union occurred
+    mov eax, dword[dsu_elements + rax * 4]
+    neg eax
     ret
