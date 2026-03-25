@@ -29,8 +29,8 @@ section .data
 dsu: istruc DSU
     ; Initialize pointer of elements to nullptr
     at DSU.elements, dq 0x0
-    ; Initialize size of each element to be sizeof(uint64_t) aka 8 bytes
-    at DSU.element_size, dq 0x8
+    ; Initialize size of each element to be sizeof(uint32_t) aka 4 bytes
+    at DSU.element_size, dq 0x4
     ; Initializes length of array to 0 for now
     at DSU.elements_len, dq 0x0
 iend
@@ -48,7 +48,7 @@ solve:
   ; rdi: number of elements
   ; rsi: sizeof(element)
   mov rdi, rax
-  mov rsi, 0x8 ; Use qwords as default even tho ints work because I'm a lazy bum
+  mov rsi, 0x4 ; Use dwords
   push rax
   call DSU_init
   pop rax
@@ -79,7 +79,7 @@ solve:
     push rax
     push rbx
     push rcx
-    call DSU_unite
+        call DSU_unite
     pop rcx
     pop rbx
     test rax, rax
@@ -243,7 +243,7 @@ DSU_init:
         jge .exit_DSU_init_loop
 
         ; Make all elements representatives
-        mov qword[rax], -1
+        mov dword[rax], -1
         ; Increment pointer by length of an element
         add rax, qword[dsu + DSU.element_size]
         
@@ -263,10 +263,10 @@ DSU_find_size:
     ; rax = ptr to elements[index]
     add rax, qword[dsu + DSU.elements]
     ; rax = elements[index]
-    mov rax, qword[rax]
+    mov eax, dword[rax]
     ; rax = -rax
     ; This is because we store the size in negatives for the representative
-    neg rax
+    neg eax
     ret
 
 ; rdi: index to element
@@ -283,9 +283,9 @@ DSU_find:
 
     mov rax, qword[dsu + DSU.elements]
     ; rbx = elements[index]
-    mov rbx, qword[rax + rdi]
+    mov ebx, dword[rax + rdi]
 
-    cmp rbx, 0x0
+    cmp ebx, 0x0
     ; If negative, do base case
     ; If positive, recurse to find representative
     jge .DSU_find_recurse
@@ -306,7 +306,7 @@ DSU_find:
         pop rbx
 
         ; elements[index] = find(elements[index])
-        mov qword[rbx + rdi], rax
+        mov dword[rbx + rdi], eax
         ret
     ret
 
@@ -348,9 +348,9 @@ DSU_unite:
     add rsi, r15
 
     ; r15 = elements[second]
-    mov r15, qword[rsi]
+    mov r15d, dword[rsi]
     ; Make sure that the "first" element is the representative with the largest subtree (most negative)
-    cmp qword[rdi], r15
+    cmp dword[rdi], r15d
     jle .unite_no_swap
     ; elements[rax] <=> elements[rbx]
     xchg rdi, rsi
@@ -359,11 +359,11 @@ DSU_unite:
     .unite_no_swap:
     ; r15 = elements[second]
     ; We do this again incase second has swapped
-    mov r15, qword[rsi]
+    mov r15d, dword[rsi]
     ; elements[index1] += elements[index2]
-    add qword[rdi], r15
+    add dword[rdi], r15d
     ; elements[index2] = index1
-    mov qword[rsi], rax
+    mov dword[rsi], eax
 
     ; return true to indicate that a union occurred
     mov rax, 0x1
