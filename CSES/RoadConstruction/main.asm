@@ -2,16 +2,19 @@ default REL
 
 %define SYS_READ 0
 %define SYS_WRITE 1
+%define SYS_FSTAT 5
+%define SYS_MMAP 9
 %define SYS_EXIT 60
 
 %define STDIN 0
 %define STDOUT 1
+%define PROT_READ 1
+%define MAP_PRIVATE 2
 
-%define INPUT_BUF_SIZE 4_000_000
-%define OUTPUT_BUF_SIZE 4_000_000
+%define OUTPUT_BUF_SIZE 3_000_000
 
 section .bss
-input_buffer resb INPUT_BUF_SIZE
+stat_struct resb 144; 144 bytes to hold file info from fstat
 output_buffer resb OUTPUT_BUF_SIZE
 dsu_elements resd 1_000_000
 
@@ -105,14 +108,24 @@ solve:
 
 global _start
 _start:
-    mov r8, input_buffer
-    mov r9, output_buffer
-    
-    mov rax, SYS_READ
+    ; Use FSTAT to get file size
+    mov rax, SYS_FSTAT
     mov rdi, STDIN
-    mov rsi, r8
-    mov rdx, INPUT_BUF_SIZE
+    mov rsi, stat_struct
     syscall
+
+    ; File size is at 6 bytes offset of stat struct
+    mov rsi, qword[stat_struct + 48]
+    mov rax, SYS_MMAP
+    xor rdi, rdi
+    mov rdx, PROT_READ ; prot
+    mov r10, MAP_PRIVATE ; flags
+    mov r8, STDIN ; fd = 0
+    xor r9, r9 ; offset = 0
+    syscall
+
+    mov r8, rax
+    mov r9, output_buffer
 
     ; Length of output buffer
     xor r11, r11
