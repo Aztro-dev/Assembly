@@ -18,30 +18,6 @@ stat_struct resb 144; 144 bytes to hold file info from fstat
 output_buffer resb OUTPUT_BUF_SIZE
 dsu_elements resd 100_000
 
-%macro INLINE_DSU_FIND 1
-    ; %1 is city index
-    %%dsu_find_loop:
-    ; test parent
-    mov edx, dword [dsu_elements + %1 * 4]
-    test edx, edx
-    jl %%dsu_found_root
-    
-    ; Get the grandparent
-    mov ecx, dword [dsu_elements + rdx * 4]
-    test ecx, ecx
-    jl %%step_up
-    
-    ; Point parent to grandparent
-    mov dword [dsu_elements + %1 * 4], ecx
-    mov %1, rcx
-    jmp %%dsu_find_loop
-    
-    ; in case grandparent is root
-    %%step_up:
-    mov %1, rdx
-    %%dsu_found_root:
-%endmacro
-
 section .data
 align 2
 ; lookup table for fast atoi
@@ -263,16 +239,49 @@ DSU_init:
     mov eax, -1
     rep stosd
     ret
+; rdi: index to element
+; returns "representative" for DSU subgraph
+DSU_find:
+    ; rsi = index to element
+    mov rsi, rdi
+    ; rbx = elements[index]
+    mov ebx, dword[dsu_elements + 4 * rdi]
+
+    cmp ebx, 0x0
+    ; If negative, do base case
+    ; If positive, recurse to find representative
+    jge .DSU_find_recurse
+    .DSU_find_base_case:
+        ; Return current element index
+        mov rax, rsi
+        ret
+    .DSU_find_recurse:
+        ; Push elements pointer and element byte index
+        push rdi
+        ; rdi = elements[index]
+        mov rdi, rbx
+        ; find(elements[index])
+        call DSU_find
+        ; Pop elements pointer and element byte index
+        pop rdi
+
+        ; elements[index] = find(elements[index])
+        mov dword[dsu_elements + rdi * 4], eax
+        ret
+    ret
 
 ; Performs the "union" operation on the two inputs
 ; rdi: index of first element
 ; rsi: index of second element
 ; Returns whether or not a union occurred
 DSU_unite:
-    mov rax, rdi
-    INLINE_DSU_FIND rax
-    mov rbx, rsi
-    INLINE_DSU_FIND rbx
+    push rsi
+    call DSU_find
+    pop rsi
+    push rax
+    mov rdi, rsi
+    call DSU_find
+    pop rbx
     ; rax = DSU_find(first)
     ; rbx = DSU_find(second)
     cmp rax, rbx
