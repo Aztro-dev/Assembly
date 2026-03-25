@@ -2,7 +2,6 @@ default REL
 
 %define SYS_READ 0
 %define SYS_WRITE 1
-%define SYS_BRK 12
 %define SYS_EXIT 60
 
 %define STDIN 0
@@ -14,11 +13,10 @@ default REL
 section .bss
 input_buffer resb INPUT_BUF_SIZE
 output_buffer resb OUTPUT_BUF_SIZE
+dsu_elements resd 1_000_000
 
 ; DSU structure
 struc DSU
-    ; Pointer to the array of elements
-    .elements: resq 1
     ; Size of each individual element
     .element_size: resq 1
     ; Length of elements array
@@ -27,8 +25,6 @@ endstruc
 
 section .data
 dsu: istruc DSU
-    ; Initialize pointer of elements to nullptr
-    at DSU.elements, dq 0x0
     ; Initialize size of each element to be sizeof(uint32_t) aka 4 bytes
     at DSU.element_size, dq 0x4
     ; Initializes length of array to 0 for now
@@ -255,32 +251,11 @@ DSU_init:
     mov qword[dsu + DSU.elements_len], rdi
     mov qword[dsu + DSU.element_size], rsi
 
-    ; number of elems * sizeof(elem) = number of bytes of array
-    mov rax, rdi
-    xor rdx, rdx
-    mul rsi
-    ; rdi = sizeof array
-    mov rdi, rax
-    ; Allocate rdi bytes on heap and return pointer in rax
-    call malloc_bytes
-    ; Store pointer to array at dsu.elements
-    mov qword[dsu + DSU.elements], rax
-
-    ; rcx is the count for the loop
-    xor rcx, rcx
-    ; rax is pointing to the start of the array
-    .DSU_init_loop:
-        cmp rcx, qword[dsu + DSU.elements_len]
-        jge .exit_DSU_init_loop
-
-        ; Make all elements representatives
-        mov dword[rax], -1
-        ; Increment pointer by length of an element
-        add rax, qword[dsu + DSU.element_size]
-        
-        inc rcx
-        jmp .DSU_init_loop
-    .exit_DSU_init_loop:
+    ; Simpler num copy
+    lea rdi, [dsu_elements]
+    mov rcx, qword[dsu + DSU.elements_len]
+    mov eax, -1
+    rep stosd
     ret
 
 ; rdi: element index
@@ -288,14 +263,8 @@ DSU_init:
 DSU_find_size:
     ; Call find to get the representative of the subgraph
     call DSU_find
-    ; rax = rax * sizeof(element)
-    ; aka rax = index in bytes
-    ; sizeof(element) is 4 bytes for now, so we just shift to eliminate mul
-    shl rax, 2
-    ; rax = ptr to elements[index]
-    add rax, qword[dsu + DSU.elements]
     ; rax = elements[index]
-    mov eax, dword[rax]
+    mov eax, dword[dsu_elements + rax * 4]
     ; rax = -rax
     ; This is because we store the size in negatives for the representative
     neg eax
@@ -306,15 +275,8 @@ DSU_find_size:
 DSU_find:
     ; rsi = index to element
     mov rsi, rdi
-    ; index * sizeof(element) = byte_index
-    mov rax, rdi
-    ; elem size is 4 bytes, so we just multiply by 4
-    ; rdi = index_bytes
-    lea rdi, [rax * 4]
-
-    mov rax, qword[dsu + DSU.elements]
     ; rbx = elements[index]
-    mov ebx, dword[rax + rdi]
+    mov ebx, dword[dsu_elements + 4 * rdi]
 
     cmp ebx, 0x0
     ; If negative, do base case
@@ -326,7 +288,6 @@ DSU_find:
         ret
     .DSU_find_recurse:
         ; Push elements pointer and element byte index
-        push rax
         push rdi
         ; rdi = elements[index]
         mov rdi, rbx
@@ -334,10 +295,9 @@ DSU_find:
         call DSU_find
         ; Pop elements pointer and element byte index
         pop rdi
-        pop rbx
 
         ; elements[index] = find(elements[index])
-        mov dword[rbx + rdi], eax
+        mov dword[dsu_elements + rdi * 4], eax
         ret
     ret
 
@@ -362,65 +322,22 @@ DSU_unite:
     xor rax, rax
     ret
     .unite_different_representatives:
-    ; rdi = ptr to elements[rax]
-    ; rsi = ptr to elements[rbx]
-    mov rdi, rax
-    ; rdi = first index but in bytes
-    ; shift left by 2 bits to multiply by 4
-    shl rdi, 2
-    ; elements[rax]
-    mov r15, qword[dsu + DSU.elements]
-    add rdi, r15
-
-    mov rsi, rbx
-    ; multiply by 4 to get index in bytes
-    ; elements[rbx]
-    mov r15, qword[dsu + DSU.elements]
-    lea rsi, [r15 + rsi * 4]
-
     ; r15 = elements[second]
-    mov r15d, dword[rsi]
+    mov r15d, dword[dsu_elements + rbx * 4]
     ; Make sure that the "first" element is the representative with the largest subtree (most negative)
-    cmp dword[rdi], r15d
+    cmp dword[dsu_elements + rax * 4], r15d
     jle .unite_no_swap
-    ; elements[rax] <=> elements[rbx]
-    xchg rdi, rsi
     ; rax <=> rbx
     xchg rax, rbx
     .unite_no_swap:
     ; r15 = elements[second]
     ; We do this again incase second has swapped
-    mov r15d, dword[rsi]
+    mov r15d, dword[dsu_elements + rbx * 4]
     ; elements[index1] += elements[index2]
-    add dword[rdi], r15d
+    add dword[dsu_elements + rax * 4], r15d
     ; elements[index2] = index1
-    mov dword[rsi], eax
+    mov dword[dsu_elements + rbx * 4], eax
 
     ; return true to indicate that a union occurred
     mov rax, 0x1
     ret
-
-; rdi: size of memory created in bytes
-; return address: pointer to start of new memory
-malloc_bytes:
-    push r11
-    push rcx
-    push rdi
-    ; Find top of heap
-    mov rax, SYS_BRK
-    xor rdi, rdi
-    syscall
-    pop rdi
-
-    push rax
-      ; top of heap += number of bytes
-      add rdi, rax
-      mov rax, SYS_BRK
-      syscall
-    pop rax
-
-    pop rcx
-    pop r11
-    ret
-
-
