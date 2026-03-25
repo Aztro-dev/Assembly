@@ -18,14 +18,6 @@ stat_struct resb 144; 144 bytes to hold file info from fstat
 output_buffer resb OUTPUT_BUF_SIZE
 dsu_elements resd 1_000_000
 
-; DSU structure
-struc DSU
-    ; Size of each individual element
-    .element_size: resq 1
-    ; Length of elements array
-    .elements_len: resq 1
-endstruc
-
 %macro INLINE_DSU_FIND 1
     ; %1 is city index
     %%dsu_find_loop:
@@ -51,12 +43,6 @@ endstruc
 %endmacro
 
 section .data
-dsu: istruc DSU
-    ; Initialize size of each element to be sizeof(uint32_t) aka 4 bytes
-    at DSU.element_size, dq 0x4
-    ; Initializes length of array to 0 for now
-    at DSU.elements_len, dq 0x0
-iend
 align 2
 ; lookup table for fast atoi
 lut100:
@@ -271,13 +257,9 @@ write_newline:
 ; rdi: number of elements
 ; rsi: sizeof(element)
 DSU_init:
-    ; Initialize length and sizeof(element)
-    mov qword[dsu + DSU.elements_len], rdi
-    mov qword[dsu + DSU.element_size], rsi
-
     ; Simpler num copy
+    mov rcx, rdi
     lea rdi, [dsu_elements]
-    mov rcx, qword[dsu + DSU.elements_len]
     mov eax, -1
     rep stosd
     ret
