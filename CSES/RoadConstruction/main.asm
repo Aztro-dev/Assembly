@@ -18,6 +18,27 @@ stat_struct resb 144; 144 bytes to hold file info from fstat
 output_buffer resb OUTPUT_BUF_SIZE
 dsu_elements resd 100_000
 
+%macro ATOI 1
+    xor %1, %1
+    %%skip_whitespace:
+    movzx r10, byte [r8]
+    inc r8
+    ; skip spaces and tabs and stuff
+    cmp r10b, 0x30
+    jl %%skip_whitespace
+
+    %%loop:
+    ; rax = 10 * rax - '0'
+    lea %1, [%1 + %1 * 4]        
+    ; rax += character - '0'
+    lea %1, [%1 * 2 + r10 - '0']
+
+    movzx r10, byte [r8]
+    inc r8
+    cmp r10b, 0x30
+    jge %%loop
+%endmacro
+
 section .data
 align 2
 ; lookup table for fast atoi
@@ -33,9 +54,9 @@ lut100:
 section .text
 solve:
   ; get num_cities and num_roads
-  call atoi
+  ATOI rax
   push rax
-  call atoi
+  ATOI rax
   ; rax = num_cities, rbx = num_roads
   mov rbx, rax
   pop rax
@@ -59,13 +80,11 @@ solve:
     dec rbx
 
     ; r13 = city_a - 1
-    call atoi
-    mov r13, rax
+    ATOI r13
     dec r13
 
     ; r14 = city_b - 1
-    call atoi
-    mov r14, rax
+    ATOI r14
     dec r14
 
     ; if (dsu.unite(city_a, city_b))
@@ -147,27 +166,6 @@ _start:
     mov rax, SYS_EXIT
     mov rdi, 0x0
     syscall
-    ret
-
-atoi:
-    xor rax, rax
-    .skip_whitespace:
-    movzx r10, byte [r8]
-    inc r8
-    ; skip spaces and tabs and stuff
-    cmp r10b, 0x30
-    jl .skip_whitespace
-
-    .loop:
-    ; rax = 10 * rax - '0'
-    lea rax, [rax + rax * 4]        
-    ; rax += character - '0'
-    lea rax, [rax * 2 + r10 - '0']
-
-    movzx r10, byte [r8]
-    inc r8
-    cmp r10b, 0x30
-    jge .loop
     ret
 
 write_uint32:
