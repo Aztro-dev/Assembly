@@ -248,18 +248,6 @@ DSU_init:
     rep stosd
     ret
 
-; rdi: element index
-; returns: size of subgraph that the element points to
-DSU_find_size:
-    ; Call find to get the representative of the subgraph
-    call DSU_find
-    ; rax = elements[index]
-    mov eax, dword[dsu_elements + rax * 4]
-    ; rax = -rax
-    ; This is because we store the size in negatives for the representative
-    neg eax
-    ret
-
 ; rdi: index to element
 ; returns "representative" for DSU subgraph
 DSU_find:
