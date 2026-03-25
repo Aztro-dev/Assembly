@@ -1,4 +1,5 @@
 %define SYS_BRK 12
+default REL
 
 ; DSU structure
 struc DSU
@@ -8,16 +9,16 @@ struc DSU
     .element_size: resq 1
     ; Length of elements array
     .elements_len: resq 1
-end struc
+endstruc
 
 section .data
 dsu: istruc DSU
     ; Initialize pointer of elements to nullptr
-    at .elements: dq 0x0
-    ; Initialize size of each element to be sizeof(int) aka 4 bytes
-    at .element_size: dq 0x4
+    at DSU.elements, dq 0x0
+    ; Initialize size of each element to be sizeof(uint64_t) aka 8 bytes
+    at DSU.element_size, dq 0x8
     ; Initializes length of array to 0 for now
-    at .elements_len: dq 0x0
+    at DSU.elements_len, dq 0x0
 iend
 
 section .text
@@ -30,12 +31,12 @@ DSU_init:
 
     ; number of elems * sizeof(elem) = number of bytes of array
     mov rax, rdi
-    xor rdx
+    xor rdx, rdx
     mul rsi
     ; rdi = sizeof array
     mov rdi, rax
     ; Allocate rdi bytes on heap and return pointer in rax
-    call malloc
+    call malloc_bytes
     ; Store pointer to array at dsu.elements
     mov qword[dsu + DSU.elements], rax
 
@@ -54,6 +55,23 @@ DSU_init:
         inc rcx
         jmp .DSU_init_loop
     .exit_DSU_init_loop:
+    ret
+
+; rdi: element index
+; returns: size of subgraph that the element points to
+DSU_find_size:
+    ; Call find to get the representative of the subgraph
+    call DSU_find
+    ; rax = rax * sizeof(element)
+    ; aka rax = index in bytes
+    imul rax, qword[dsu + DSU.element_size]
+    ; rax = ptr to elements[index]
+    add rax, qword[dsu + DSU.elements]
+    ; rax = elements[index]
+    mov rax, qword[rax]
+    ; rax = -rax
+    ; This is because we store the size in negatives for the representative
+    neg rax
     ret
 
 ; rdi: index to element
@@ -95,6 +113,60 @@ DSU_find:
         ; elements[index] = find(elements[index])
         mov qword[rbx + rdi], rax
         ret
+    ret
+
+; Performs the "union" operation on the two inputs
+; rdi: index of first element
+; rsi: index of second element
+unite:
+    push rsi
+    call DSU_find
+    pop rsi
+    push rax
+    mov rdi, rsi
+    call DSU_find
+    pop rbx
+    xchg rax, rbx
+    ; rax = DSU_find(first)
+    ; rbx = DSU_find(second)
+    cmp rax, rbx
+    jne .unite_different_representatives
+    ret
+    .unite_different_representatives:
+    ; rdi = ptr to elements[rax]
+    ; rsi = ptr to elements[rbx]
+    mov rdi, rax
+    ; rdi = first index but in bytes
+    imul rdi, qword[dsu + DSU.element_size]
+    ; elements[rax]
+    mov r15, qword[dsu + DSU.elements]
+    add rdi, r15
+
+    mov rsi, rbx
+    ; rsi = second index but in bytes
+    imul rsi, qword[dsu + DSU.element_size]
+    ; elements[rbx]
+    mov r15, qword[dsu + DSU.elements]
+    add rsi, r15
+
+    ; r15 = elements[second]
+    mov r15, qword[rsi]
+    ; Make sure that the "first" element is the representative with the largest subtree (most negative)
+    cmp qword[rdi], r15
+    jle .unite_no_swap
+    ; elements[rax] <=> elements[rbx]
+    xchg rdi, rsi
+    ; rax <=> rbx
+    xchg rax, rbx
+    .unite_no_swap:
+    ; r15 = elements[second]
+    ; We do this again incase second has swapped
+    mov r15, qword[rsi]
+    ; elements[index1] += elements[index2]
+    add qword[rdi], r15
+    ; elements[index2] = index1
+    mov qword[rsi], rax
+
     ret
 
 ; rdi: size of memory created in bytes
