@@ -118,7 +118,8 @@ DSU_find:
 ; Performs the "union" operation on the two inputs
 ; rdi: index of first element
 ; rsi: index of second element
-unite:
+; Returns whether or not a union occurred
+DSU_unite:
     push rsi
     call DSU_find
     pop rsi
@@ -131,6 +132,8 @@ unite:
     ; rbx = DSU_find(second)
     cmp rax, rbx
     jne .unite_different_representatives
+    ; return false for no union
+    xor rax, rax
     ret
     .unite_different_representatives:
     ; rdi = ptr to elements[rax]
@@ -167,6 +170,8 @@ unite:
     ; elements[index2] = index1
     mov qword[rsi], rax
 
+    ; return true to indicate that a union occurred
+    mov rax, 0x1
     ret
 
 ; rdi: size of memory created in bytes
