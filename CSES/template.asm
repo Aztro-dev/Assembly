@@ -14,6 +14,7 @@ default REL
 %define OUTPUT_BUF_SIZE 3_000_000
 
 section .bss
+stat_struct resb 144; 144 bytes to hold file info from fstat
 output_buffer resb OUTPUT_BUF_SIZE
 
 %macro ATOI 1
