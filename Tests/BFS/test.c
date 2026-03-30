@@ -27,8 +27,8 @@ int main() {
 
   int32_t start = get_start();
   int32_t end = get_end();
-  printf("Start: %d\n", start);
-  printf("End: %d\n", end);
+  printf("Start: %d\n", start & 0xFFFF);
+  printf("End: %d\n", end & 0xFFFF);
 
   bfs();
 

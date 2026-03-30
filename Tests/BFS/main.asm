@@ -4,18 +4,22 @@ default REL
 %define BFS_WALL '#'
 
 section .bss
-; Assuming square board
-board: resb (BOARD_SIZE * BOARD_SIZE)
-visited: resb (BOARD_SIZE * BOARD_SIZE)
-previous_path: resb (BOARD_SIZE * BOARD_SIZE)
+N: resw 1
+M: resw 1
+; Start and end positions on the board
+board_start: resw 1
+board_end: resw 1
 ; 2 words for each (x, y) pair
 ; Might change depending on board size
 queue: resw (2 * BOARD_SIZE * BOARD_SIZE)
-; Start and end positions on the board
-board_start: resw 2
-board_end: resw 2
 
 section .data
+; Assuming square board
+board: times (BOARD_SIZE * BOARD_SIZE) db 0x0
+visited: times (BOARD_SIZE * BOARD_SIZE) db 0x0
+previous_path: times (BOARD_SIZE * BOARD_SIZE) db 0x0
+
+; Pointers to beginning and end of queue
 queue_start: dq queue
 queue_end: dq queue
 
@@ -25,6 +29,9 @@ global init_board
 ; rsi: N
 ; rdx: M
 init_board:
+    ; Store N and M for later
+    mov word[N], si
+    mov word[M], dx
     ; Calculate max index
     mov rax, rdx
     imul rsi
@@ -84,4 +91,9 @@ get_end:
 
 global bfs
 bfs:
+    ; Start at end so we don't have to reverse the paths array when we're done
+    xor rax, rax
+    mov ax, word[board_end]
+
+
     ret
